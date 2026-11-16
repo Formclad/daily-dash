@@ -13,12 +13,13 @@
     if (date !== U.today()) return;
     const day = Day.get(date);
     if (day.pri.some(p => p.t.trim())) return;
-    const s = Matrix.suggest(date);
-    if (s.length) Day.update(date, x => s.forEach((t, i) => { x.pri[i] = { t: t.t, d: false, tid: t.id }; }));
+    const s = Brief.focus(date);
+    if (s.length) Day.update(date, x => s.forEach((c, i) => { x.pri[i] = { t: c.t, d: false, tid: c.tid, bid: c.bid }; }));
   }
 
   function html() {
     const date = U.today();
+    Schedule.run();                 // add prep tasks from the schedule ahead, then choose the focus
     autoPriorities(date);
     const day = Day.get(date);
     const nowM = new Date().getHours() * 60 + new Date().getMinutes();
@@ -41,14 +42,18 @@
           : `<div class="task"><button class="pill sm" data-act="strava-count" data-id="${n.id}">Yes</button><div class="tk-main"><div class="tk-t">${U.esc(n.t)}</div></div></div>`).join('')
         : '<p class="hint">You’re clear. Nothing is waiting on a decision from you.</p>') + `</section>`;
 
-    const top = `<section class="card"><header class="card-h"><span class="stamp">✎</span><h2>Your top three</h2><a class="more" href="#/plan">Plan ›</a></header>${Cards.priRows(day)}` +
-      (day.pri.some(p => p.t.trim()) ? '' : '<p class="hint">Add tasks in Matrix and I’ll choose these for you each morning.</p>') + `</section>`;
+    const open = day.pri.filter(p => p.t.trim() && !p.d), slots = Brief.slots(date, open.length);
+    const top = `<section class="card"><header class="card-h"><span class="stamp">✎</span><h2>Today’s focus</h2><a class="more" href="#/plan">Plan ›</a></header>${Cards.priRows(day)}` +
+      (open.length && slots.length ? `<div class="plan"><span>Suggested times</span>${open.map((p, i) => slots[i] ? `<div class="slot"><b>${U.esc(slots[i])}</b> ${U.esc(p.t)}</div>` : '').join('')}</div>` : '') +
+      (day.pri.some(p => p.t.trim()) ? '' : '<p class="hint">Add tasks in Matrix and I’ll choose these for you each morning.</p>') +
+      `<div class="btn-row"><button class="pill ghost sm" data-act="use-suggest">Re-pick my focus</button></div></section>`;
 
     // One timeline: all-day chips, timed events, then anything that has no time.
     const tl = `<section class="card"><header class="card-h"><span class="stamp">◷</span><h2>Today, in order</h2><a class="more" href="#/plan">Edit ›</a></header>` +
       (allDay.length ? `<div class="chips">${allDay.map(e => `<span class="chip tag" ${Calendar.colorFor(e.source) ? `style="border-color:${Calendar.colorFor(e.source)}"` : ''}>${U.esc(e.text)}</span>`).join('')}</div>` : '') +
       (timed.length ? timed.map(e => ev(e, (parseInt(e.time.slice(0, 2), 10) * 60 + parseInt(e.time.slice(3, 5), 10) < nowM ? 'past' : '') + (nx === e ? ' next' : ''))).join('') : '<p class="hint">No timed events today.</p>') +
       (day.sched.length ? day.sched.map(s => ev({ time: s.t, text: s.x, source: '' })).join('') : '') +
+      (Matrix.open().filter(t => t.due === date).length ? `<h3 class="aisle">Due today</h3>` + Matrix.open().filter(t => t.due === date).map(t => `<div class="task"><button class="box-btn" data-m-done="${t.id}" aria-label="Done"><span class="box"></span></button><div class="tk-main"><div class="tk-t">${U.esc(t.t)}</div><div class="tk-m">${U.esc(t.src === 'schedule' ? 'from your schedule' : (t.cat || 'Matrix'))}</div></div></div>`).join('') : '') +
       `<h3 class="aisle">Around the house</h3>` +
       (due.length ? due.map(r => `<div class="task ${rt[r.id] ? 'done' : ''}"><button class="box-btn ${rt[r.id] ? 'on' : ''}" data-r-tick="${r.id}" role="checkbox" aria-checked="${!!rt[r.id]}"><span class="box">${rt[r.id] ? '✓' : ''}</span></button><div class="tk-main"><div class="tk-t">${U.esc(r.t)}</div><div class="tk-m">${U.esc(r.area)}</div></div></div>`).join('') : '<p class="hint">No household jobs due today.</p>') +
       `<div class="mini"><span>Dinner</span><b>${dinner ? U.esc(dinner) : '<a href="#/meals">Not planned yet</a>'}</b></div>` +

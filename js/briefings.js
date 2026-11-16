@@ -21,6 +21,7 @@
     },
     /** Hide a briefing (it stays in the database, but disappears from every screen). */
     hide(id) { Store.update('brief:' + id, {}, d => { d.hidden = true; }); },
+    setDone(bid, i, v) { Store.update('data:briefstate', { done: {} }, s => { const k = `${bid}|${i}`; v ? (s.done[k] = 1) : delete s.done[k]; }); },
     tick(bid, i) { Store.update('data:briefstate', { done: {} }, s => { const k = `${bid}|${i}`; s.done[k] ? delete s.done[k] : (s.done[k] = 1); }); },
 
     ago(at) {

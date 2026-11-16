@@ -58,7 +58,7 @@ window.DD_DEFAULTS = {
   urgentDays: 2,
 
   // Shown in Settings so you can tell which copy of the app you are running.
-  appVersion: 'v14',
+  appVersion: 'v15',
 
   // Remind to back up after this many days.
   backupReminderDays: 7
