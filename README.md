@@ -60,6 +60,15 @@ Garmin Connect has no personal-use data link, but Garmin watches and Runna can b
 
 Activities also appear on the day's schedule (tagged Strava), and Home has a Movement tile.
 
+## 6. Show your scheduled Claude briefings and tasks on the dashboard
+
+Scheduled tasks send a copy of their result to a private drop-box (a Supabase function). It appears on **Home** (Briefings tile) and the **Briefings** page, with anything that needs you pulled out as a tick-off list (and a "+ Matrix" button).
+
+1. **Find your user id:** Supabase > Authentication > Users > copy the **User UID** for your login.
+2. **Add two secrets** (Edge Functions > Secrets): `BRIEFING_USER_ID` (that UID) and `BRIEFING_KEY` (a long random password you invent). Keep the key out of chat and GitHub; it is entered into the scheduled tasks' environment through Claude's secure credential form.
+3. **Deploy** a function named exactly `briefing` from `supabase/functions/briefing/index.ts` with **Verify JWT switched OFF** (scheduled tasks have no login, so the secret key is the lock).
+4. Each scheduled task then ends with a short "dashboard step" that posts: `source`, `title`, `kind` (`briefing` or `task`), `summary` (plain text; `**bold**`, `- ` bullets and `## ` headings display nicely) and `items` (`t`, optional `due` as `YYYY-MM-DD`, and `action: true` for things that need you).
+
 ## How syncing works
 Each day (and each setting) is one record. Edits save on the device instantly, so the app opens fast and works offline, then upload automatically when online. If two devices edit the same day, the most recent edit wins. Use **Settings > Export backup** regularly (the app nudges you weekly).
 
