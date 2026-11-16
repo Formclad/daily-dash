@@ -8,13 +8,22 @@
   const dow = d => U.parse(d).toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' });
   const ev = (e, cls = '') => `<div class="tlr ${cls}" ${Calendar.colorFor(e.source) ? `style="--c:${Calendar.colorFor(e.source)}"` : ''}><span class="tt">${U.esc(e.time || 'all day')}</span><span class="tx">${U.esc(e.text)}</span><em class="src">${U.esc(e.source || '')}</em></div>`;
 
-  /** Auto-pick today's top three from the matrix when nothing is set yet. */
+  /**
+   * Choose today's top three. Runs on every view: it fills them in when empty, and keeps them up to date
+   * as new information arrives, until you tick or edit one (then they are yours and stay put).
+   */
   function autoPriorities(date) {
     if (date !== U.today()) return;
     const day = Day.get(date);
-    if (day.pri.some(p => p.t.trim())) return;
+    const texts = day.pri.map(p => p.t.trim());
+    const empty = texts.every(t => !t);
+    const untouched = day.autoPicked && JSON.stringify(day.pri.map(p => p.t)) === JSON.stringify(day.autoPicked) && !day.pri.some(p => p.d);
+    if (!empty && !untouched) return;
     const s = Brief.focus(date);
-    if (s.length) Day.update(date, x => s.forEach((c, i) => { x.pri[i] = { t: c.t, d: false, tid: c.tid, bid: c.bid }; }));
+    const next = [0, 1, 2].map(i => (s[i] ? s[i].t : ''));
+    if (!s.length && empty) return;
+    if (JSON.stringify(next) === JSON.stringify(day.pri.map(p => p.t))) return;      // nothing changed
+    Day.update(date, x => { for (let i = 0; i < 3; i++) x.pri[i] = s[i] ? { t: s[i].t, d: false, tid: s[i].tid, bid: s[i].bid } : { t: '', d: false }; x.autoPicked = next; });
   }
 
   function html() {

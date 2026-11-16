@@ -12,7 +12,8 @@
     body: {},             // { sun: true, ... }
     rate: {},             // { energy: 4, ... }
     eve: { well: '', diff: '', showed: '', good: '' },
-    feel: ''              // how you said you feel (Coach check-in)
+    feel: '',             // how you said you feel (Coach check-in)
+    autoPicked: null      // texts the assistant last chose for the top three (it keeps refreshing them until you edit or tick one)
   });
 
   const Day = {
@@ -38,7 +39,7 @@
         Day.update(date, x => x.sched.splice(+btn.dataset.i, 1));
       } else if (a === 'use-suggest') {
         const s = Brief.focus(U.today());
-        Day.update(date, x => { for (let i = 0; i < 3; i++) x.pri[i] = s[i] ? { t: s[i].t, d: false, tid: s[i].tid, bid: s[i].bid } : { t: '', d: false }; });
+        Day.update(date, x => { for (let i = 0; i < 3; i++) x.pri[i] = s[i] ? { t: s[i].t, d: false, tid: s[i].tid, bid: s[i].bid } : { t: '', d: false }; x.autoPicked = x.pri.map(p => p.t); });
       } else return false;
       return true;
     }
