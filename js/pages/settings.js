@@ -33,6 +33,7 @@
           <label>Private calendar link<input name="url" type="url" placeholder="https://calendar.google.com/calendar/ical/…/basic.ics" required autocomplete="off" autocapitalize="off" spellcheck="false"></label>
           <div class="btn-row"><button class="pill" type="submit">Add calendar</button>${Calendar.feeds().length ? '<button class="pill ghost" type="button" data-set="feed-refresh">Refresh now</button>' : ''}</div></form>
         <p class="hint">${Calendar.fetchedAt ? 'Last updated ' + new Date(Calendar.fetchedAt).toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' }) + '. ' : ''}${Calendar.error ? '<span class="err">' + U.esc(Calendar.error) + '</span>' : ''}</p>
+        <p class="hint">${Calendar.pushedAt ? 'Calendars synced by Claude: last update ' + new Date(Calendar.pushedAt).toLocaleString('en-AU', { weekday: 'short', hour: 'numeric', minute: '2-digit' }) + '.' : 'Tip: a scheduled Claude sync can bring in all your calendars (Google and Outlook) with no links needed.'}</p>
         <p class="hint">These links are private: they are saved only in your database and on your devices, never in the public code.</p></section>
       <section class="card"><header class="card-h"><span class="stamp">✎</span><h2>Morning prompts</h2></header>
         <form data-set="prompts" class="stack">${p.morning.map((q, i) => `<label>Prompt ${i + 1}<textarea class="line" rows="1" name="m${i}">${U.esc(q)}</textarea></label>`).join('')}

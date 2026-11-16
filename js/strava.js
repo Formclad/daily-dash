@@ -24,12 +24,14 @@
 
   const Strava = {
     onChange(f) { listeners.add(f); },
-    get connected() { return !!st.connected; },
-    get athlete() { return st.athlete || ''; },
+    /** True when your scheduled Claude task supplies the data (no Strava app needed). */
+    get viaClaude() { return !!Store.peek('feed:strava'); },
+    get connected() { return Strava.viaClaude || !!st.connected; },
+    get athlete() { return (Store.peek('feed:strava') || {}).athlete || st.athlete || ''; },
     get error() { return st.error || ''; },
-    get fetchedAt() { return st.at || 0; },
+    get fetchedAt() { return (Store.peek('feed:strava') || {}).at || st.at || 0; },
     get configured() { return st.configured !== false; },
-    activities: () => st.acts || [],
+    activities: () => (Store.peek('feed:strava') || {}).activities || st.acts || [],
 
     /** Where to send you to approve access on Strava. */
     connectUrl() {
@@ -39,7 +41,7 @@
     canConnect: () => !!st.clientId,
 
     async refresh(force) {
-      if (busy || !Sync.signedIn() || !navigator.onLine) return;
+      if (Strava.viaClaude || busy || !Sync.signedIn() || !navigator.onLine) return;
       if (!force && st.connected && Date.now() - (st.at || 0) < STALE) return;
       busy = true;
       try {
