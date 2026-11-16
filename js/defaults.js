@@ -57,6 +57,9 @@ window.DD_DEFAULTS = {
   // A task is "urgent" when it is due within this many days (or overdue).
   urgentDays: 2,
 
+  // Shown in Settings so you can tell which copy of the app you are running.
+  appVersion: 'v16',
+
   // Remind to back up after this many days.
   backupReminderDays: 7
 };

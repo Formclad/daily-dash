@@ -44,7 +44,8 @@
       <section class="card"><header class="card-h"><span class="stamp">⤓</span><h2>Backup</h2></header>
         <p class="hint">Last backup: ${Store.meta('lastExport') ? new Date(Store.meta('lastExport')).toLocaleDateString('en-AU') : 'never'}. A copy of everything, as one file.</p>
         <div class="btn-row"><button class="pill" data-set="export">Export backup</button><label class="pill ghost file">Import backup<input type="file" accept="application/json,.json" data-set="import" hidden></label></div>
-        <p class="hint" id="bk-msg"></p></section>`;
+        <p class="hint" id="bk-msg"></p></section>
+      <p class="hint center">App version ${U.esc(D.appVersion)}</p>`;
   }
 
   function render(app) { app.innerHTML = html(); }
