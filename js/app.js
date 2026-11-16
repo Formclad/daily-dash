@@ -27,7 +27,8 @@
   window.App = { get route() { return route; }, secondary: () => Object.entries(PAGES).filter(([, p]) => p.sec) };   // pages check this so only the visible page reacts to clicks
 
   function parse() {
-    const [, name, arg] = (location.hash || '').split('/');
+    let [, name, arg] = (location.hash || '').split('/');
+    if (name === 'today') name = 'plan';   // old links from the first version
     return { name: PAGES[name] ? name : 'home', arg };
   }
 
