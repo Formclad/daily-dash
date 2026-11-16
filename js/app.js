@@ -8,30 +8,35 @@
   const nav = document.getElementById('nav');
   const banner = document.getElementById('banner');
 
-  // route name -> { label, icon, page }   (order = order in the bottom bar)
+  // route name -> { label, icon, page }   (order = order in the navigation)
   const PAGES = {
-    today:    { label: 'Today',    icon: '✎', page: TodayPage },
-    settings: { label: 'Settings', icon: '⚙', page: SettingsPage }
+    home:    { label: 'Home',    icon: '⌂', page: HomePage },
+    plan:    { label: 'Plan',    icon: '✎', page: TodayPage, dated: true },
+    journal: { label: 'Journal', icon: '✿', page: TodayPage, dated: true },
+    matrix:  { label: 'Matrix',  icon: '▦', page: MatrixPage },
+    goals:   { label: 'Goals',   icon: '◎', page: GoalsPage },
+    meals:   { label: 'Meals',   icon: '❋', page: MealsPage },
+    settings:{ label: 'Settings',icon: '⚙', page: SettingsPage }
   };
 
-  let route = 'today';
+  let route = 'home';
+  window.App = { get route() { return route; } };   // pages check this so only the visible page reacts to clicks
 
   function parse() {
     const [, name, arg] = (location.hash || '').split('/');
-    return { name: PAGES[name] ? name : 'today', arg };
+    return { name: PAGES[name] ? name : 'home', arg };
   }
 
-  function show() {
+  function show(fresh) {
     const { name, arg } = parse();
     route = name;
-    if (name === 'today') {
-      const date = /^\d{4}-\d{2}-\d{2}$/.test(arg || '') ? arg : U.today();
-      TodayPage.render(app, date);
-    } else PAGES[name].page.render(app, arg);
+    const P = PAGES[name];
+    if (P.dated) TodayPage.render(app, /^\d{4}-\d{2}-\d{2}$/.test(arg || '') ? arg : U.today(), name);
+    else P.page.render(app);
     nav.innerHTML = Object.entries(PAGES).map(([k, p]) =>
       `<a href="#/${k}" class="${k === name ? 'on' : ''}" ${k === name ? 'aria-current="page"' : ''}><span class="ni">${p.icon}</span>${p.label}</a>`).join('') +
       `<a href="#/settings" class="sync-dot ${Sync.status}" title="${Sync.status}" aria-label="Sync status: ${Sync.status}"></a>`;
-    if (!location.hash.includes('/' + name + '/')) window.scrollTo(0, 0);
+    if (fresh === true) window.scrollTo(0, 0);
     updateBanner();
   }
 
@@ -46,9 +51,13 @@
   }
   banner.addEventListener('click', e => { if (e.target.id === 'snooze') { Store.setMeta('snooze', Date.now() + 864e5); updateBanner(); } });
 
+  HomePage.bind(app);
   TodayPage.bind(app);
+  MatrixPage.bind(app);
+  GoalsPage.bind(app);
+  MealsPage.bind(app);
   SettingsPage.bind(app, show);
-  window.addEventListener('hashchange', show);
+  window.addEventListener('hashchange', () => show(true));
 
   // Data arrived from another device: refresh unless you are mid-typing.
   Store.subscribe(i => { if (i.type === 'remote' && !TodayPage.isEditing() && route !== 'settings') show(); });
@@ -60,6 +69,7 @@
 
   show();
   Sync.start();
+  Calendar.refresh();
 
   // Offline support: only works over https (GitHub Pages) or localhost.
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});

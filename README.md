@@ -31,6 +31,23 @@ By default the app doesn't need keys in the repo at all: you paste the URL and a
 - **Android (Chrome):** open the address > menu (three dots) > **Install app** / **Add to Home screen**.
 Then open it, go to **Settings > Sync**, paste the URL and anon key, sign in with your email and password. Repeat once on each device (home desktop, work desktop, phone).
 
+## 4. Show your calendars (Google and Outlook)
+
+The app reads each calendar's **private iCal link**. A small free Supabase function fetches them for you (browsers can't), so this is a one-off setup.
+
+**A. Deploy the function (once)**
+1. Supabase dashboard > **Edge Functions** > **Deploy a new function** > **Via Editor**.
+2. Name it exactly `calendar`. Delete the sample code and paste the whole of `supabase/functions/calendar/index.ts`.
+3. Leave **Verify JWT** switched ON, then **Deploy**.
+
+**B. Get the links**
+- **Google Calendar** (calendar.google.com on a computer): hover a calendar in the left list > three dots > **Settings and sharing** > scroll to **Secret address in iCal format** > copy. Do this for each calendar (personal, family, business, study).
+- **Outlook (outlook.office.com or outlook.live.com)**: Settings (cog) > **Calendar** > **Shared calendars** > **Publish a calendar** > choose the calendar and **Can view all details** > **Publish** > copy the **ICS** link. If "Publish a calendar" is missing or greyed out, your organisation has switched it off for work calendars.
+
+**C. Add them in the app:** Settings > Calendars > give each a name and paste the link. They are saved only in your database, never in the repo.
+
+Treat these links like passwords: anyone with a link can read that calendar. In Google you can reset a link ("Reset secret address") if one is ever shared by mistake.
+
 ## How syncing works
 Each day (and each setting) is one record. Edits save on the device instantly, so the app opens fast and works offline, then upload automatically when online. If two devices edit the same day, the most recent edit wins. Use **Settings > Export backup** regularly (the app nudges you weekly).
 

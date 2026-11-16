@@ -27,6 +27,13 @@
         </form>`;
     return `<header class="dayhead"><div class="dh-mid"><h1>Settings</h1></div></header>
       <section class="card"><header class="card-h"><span class="stamp">⇄</span><h2>Sync</h2></header>${sync}</section>
+      <section class="card"><header class="card-h"><span class="stamp">▤</span><h2>Calendars</h2></header>
+        ${(Calendar.feeds().length ? Calendar.feeds().map(f => `<div class="feed"><span class="fn">${U.esc(f.name)}</span><span class="fu">${U.esc(f.url.replace(/^https?:\/\//, '').slice(0, 28))}…</span><button class="x" data-set="feed-del" data-id="${f.id}" aria-label="Remove ${U.esc(f.name)}">×</button></div>`).join('') : '<p class="hint">No calendars yet. Paste a private calendar link below (Google “secret address in iCal format”, or an Outlook published ICS link).</p>')}
+        <form data-set="feed-add" class="stack"><label>Name<input name="name" type="text" placeholder="e.g. Personal, Family, Work" required autocomplete="off"></label>
+          <label>Private calendar link<input name="url" type="url" placeholder="https://calendar.google.com/calendar/ical/…/basic.ics" required autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+          <div class="btn-row"><button class="pill" type="submit">Add calendar</button>${Calendar.feeds().length ? '<button class="pill ghost" type="button" data-set="feed-refresh">Refresh now</button>' : ''}</div></form>
+        <p class="hint">${Calendar.fetchedAt ? 'Last updated ' + new Date(Calendar.fetchedAt).toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' }) + '. ' : ''}${Calendar.error ? '<span class="err">' + U.esc(Calendar.error) + '</span>' : ''}</p>
+        <p class="hint">These links are private: they are saved only in your database and on your devices, never in the public code.</p></section>
       <section class="card"><header class="card-h"><span class="stamp">✎</span><h2>Morning prompts</h2></header>
         <form data-set="prompts" class="stack">${p.morning.map((q, i) => `<label>Prompt ${i + 1}<textarea class="line" rows="1" name="m${i}">${U.esc(q)}</textarea></label>`).join('')}
         <label>Question under the top three<textarea class="line" rows="1" name="ferriss">${U.esc(p.ferriss)}</textarea></label>
@@ -42,7 +49,9 @@
   function render(app) { app.innerHTML = html(); }
 
   function bind(app, rerender) {
+    const mine = () => window.App && App.route === 'settings';
     app.addEventListener('submit', async e => {
+      if (!mine()) return;
       const f = e.target.closest('form[data-set]');
       if (!f) return;
       e.preventDefault();
@@ -55,6 +64,12 @@
           await Sync.signIn(f.email.value.trim(), f.password.value);
           rerender();
         } catch (x) { err.textContent = x.message; }
+      } else if (f.dataset.set === 'feed-add') {
+        const cur = Store.get('config:calendars', { feeds: [] });
+        cur.feeds.push({ id: U.id(), name: f.name.value.trim(), url: f.url.value.trim() });
+        Store.set('config:calendars', cur);
+        Calendar.refresh(true);
+        rerender();
       } else if (f.dataset.set === 'prompts') {
         Store.set('config:prompts', { morning: D.prompts.morning.map((_, i) => f['m' + i].value.trim() || D.prompts.morning[i]), ferriss: f.ferriss.value.trim() || D.prompts.ferriss });
         f.querySelector('button[type=submit]').textContent = 'Saved ✓';
@@ -62,10 +77,13 @@
     });
 
     app.addEventListener('click', e => {
+      if (!mine()) return;
       const b = e.target.closest('button[data-set]');
       if (!b) return;
       const a = b.dataset.set;
       if (a === 'sync-now') Sync.now();
+      else if (a === 'feed-del') { const cur = Store.get('config:calendars', { feeds: [] }); cur.feeds = cur.feeds.filter(x => x.id !== b.dataset.id); Store.set('config:calendars', cur); rerender(); }
+      else if (a === 'feed-refresh') Calendar.refresh(true);
       else if (a === 'sign-out') { Sync.signOut(); rerender(); }
       else if (a === 'prompts-reset') { Store.set('config:prompts', U.clone(D.prompts)); rerender(); }
       else if (a === 'theme') {
@@ -85,6 +103,7 @@
     });
 
     app.addEventListener('change', async e => {
+      if (!mine()) return;
       const inp = e.target.closest('input[data-set="import"]');
       if (!inp || !inp.files[0]) return;
       const msg = document.getElementById('bk-msg');
