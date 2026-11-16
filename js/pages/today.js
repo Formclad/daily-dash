@@ -109,7 +109,10 @@
       `<div class="dh-mid"><h1>${U.esc(U.fmtLong(date))}</h1>` +
       `<div class="dh-sub">${isToday ? '<span class="stamp-today">today</span>' : `<a href="#/today/${U.today()}">back to today</a>`}</div></div>` +
       `<a class="arrow" href="#/today/${U.addDays(date, 1)}" aria-label="Next day">›</a></header>`;
-    return head + SECTIONS.map(fn => fn(day, date, extCache[date])).join('') + '<p class="foot">Be kind to yourself. Tomorrow is a fresh page.</p>';
+    // Two columns on desktop (CSS stacks them on phones): planning on the left, tracking on the right.
+    const parts = SECTIONS.map(fn => fn(day, date, extCache[date]));
+    const half = Math.ceil(parts.length / 2);
+    return head + `<div class="cols"><div class="col">${parts.slice(0, half).join('')}</div><div class="col">${parts.slice(half).join('')}</div></div>` + '<p class="foot">Be kind to yourself. Tomorrow is a fresh page.</p>';
   }
 
   const isEditing = () => /^(INPUT|TEXTAREA)$/.test((document.activeElement || {}).tagName || '');

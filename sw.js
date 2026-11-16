@@ -3,7 +3,7 @@
  * Bump VERSION whenever you change any app file so phones pick up the update.
  * Supabase requests are cross-origin and are NOT touched here.
  */
-const VERSION = 'dd-v1';
+const VERSION = 'dd-v2';
 const FILES = [
   './', 'index.html', 'manifest.webmanifest', 'css/style.css',
   'js/config.js', 'js/defaults.js', 'js/util.js', 'js/store.js', 'js/sync.js', 'js/calendar.js', 'js/habits.js',
