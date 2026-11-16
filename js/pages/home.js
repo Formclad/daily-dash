@@ -16,7 +16,7 @@
     schedule(day, date, ext) {
       const items = day.sched.map(s => ({ t: s.t, x: s.x })).concat((ext || []).map(e => ({ t: e.time, x: e.text, ext: e.source })))
         .sort((a, b) => (a.t || '').localeCompare(b.t || ''));
-      const rows = items.slice(0, 7).map(s => `<div class="ev"><span class="et">${U.esc(s.t || '')}</span><span class="ex">${U.esc(s.x)}</span>${s.ext ? `<em class="src">${U.esc(s.ext)}</em>` : ''}</div>`).join('');
+      const rows = items.slice(0, 7).map(s => `<div class="ev"${s.ext && Calendar.colorFor(s.ext) ? ` style="--c:${Calendar.colorFor(s.ext)}"` : ''}><span class="et">${U.esc(s.t || '')}</span><span class="ex">${U.esc(s.x)}</span>${s.ext ? `<em class="src">${U.esc(s.ext)}</em>` : ''}</div>`).join('');
       return tile('◷', 'Schedule', ['#/plan', 'Edit'], rows || '<p class="hint">A clear day so far.</p>');
     },
 
@@ -25,9 +25,9 @@
       const n = list.filter(h => day.habits[h.id]).length;
       const rows = list.map(h => {
         const st = day.habits[h.id];
-        return `<div class="mh ${st ? 'done' : ''}"><span class="mh-n">${U.esc(h.name)}</span>` +
+        return `<div class="mh-wrap"><div class="mh ${st ? 'done' : ''}"><span class="mh-n">${U.esc(h.name)}</span>` +
           `<button class="hbtn ${st === 'full' ? 'on' : ''}" data-act="habit" data-id="${h.id}" data-level="full" aria-pressed="${st === 'full'}" aria-label="${U.esc(h.name)} full">✓<small>full</small></button>` +
-          `<button class="hbtn mini ${st === 'mini' ? 'on' : ''}" data-act="habit" data-id="${h.id}" data-level="mini" aria-pressed="${st === 'mini'}" aria-label="${U.esc(h.name)} 2 minute">✓<small>2 min</small></button></div>`;
+          `<button class="hbtn mini ${st === 'mini' ? 'on' : ''}" data-act="habit" data-id="${h.id}" data-level="mini" aria-pressed="${st === 'mini'}" aria-label="${U.esc(h.name)} 2 minute">✓<small>2 min</small></button></div>${window.stravaPrompt(h, date)}</div>`;
       }).join('');
       const bar = list.length ? `<div class="prog" aria-hidden="true"><i style="width:${Math.round(100 * n / list.length)}%"></i></div><p class="hint">${n} of ${list.length} today</p>` : '';
       return tile('✿', 'Habits', ['#/journal', 'Details'], bar + (rows || '<p class="hint">Nothing scheduled today. Rest counts too.</p>'));
@@ -55,6 +55,19 @@
       return tile('❋', 'Meals', ['#/meals', 'Plan'], `<p class="hint">Tonight’s dinner</p><p class="big">${dinner ? U.esc(dinner) : '<span class="soft">Not planned yet</span>'}</p><p class="hint">${n ? n + ' on the shopping list' : 'Shopping list is empty'}</p>`);
     },
 
+    move() {
+      if (!Strava.connected) return tile('♡', 'Movement', ['#/health', 'Open'], '<p class="hint">Connect Strava to see your runs and workouts here.</p>');
+      const ws = U.weekStart(U.today()), acts = Strava.inWeek(ws), runs = acts.filter(Strava.isRun);
+      const last = Strava.activities().slice().sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time))[0];
+      return tile('♡', 'Movement', ['#/health', 'Open'], `<p class="big">${acts.length} session${acts.length === 1 ? '' : 's'} this week</p><p class="hint">${runs.length} run${runs.length === 1 ? '' : 's'} · ${runs.reduce((n, a) => n + a.km, 0).toFixed(1)} km · ${Strava.fmtTime(acts.reduce((n, a) => n + a.secs, 0))}</p>` +
+        (last ? `<p class="hint">Latest: ${U.esc(last.name)} (${U.parse(last.date).toLocaleDateString('en-AU', { weekday: 'short' })})</p>` : ''));
+    },
+
+    family(day, date) {
+      const rows = Family.todaySummary(date).map(x => `<div class="mh"><span class="mh-n">${U.esc(x.name)}</span><span class="hint">${x.done} of ${x.total} chores${x.done === x.total ? ' ★' : ''}</span></div>`).join('');
+      return tile('☺', 'Family', ['#/family', 'Open'], rows || '<p class="hint">Add your family, chores and routines to see today here.</p>');
+    },
+
     journal(day) {
       const answered = day.mind.filter(x => x.trim()).length;
       const eve = ['well', 'diff', 'showed'].filter(k => (day.eve[k] || '').trim()).length;
@@ -63,7 +76,7 @@
         `<label class="qa good"><span class="q">One good thing</span>${Cards.field('eve.good', day.eve.good, '✿', 1)}</label>`);
     }
   };
-  const ORDER = ['focus', 'schedule', 'habits', 'matrix', 'goals', 'meals', 'body', 'journal'];
+  const ORDER = ['focus', 'schedule', 'habits', 'matrix', 'move', 'goals', 'family', 'meals', 'body', 'journal'];
 
   let date = U.today();
   const greeting = () => { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; };
@@ -86,6 +99,7 @@
       if (b && Day.act(b, date)) render(app);
     });
   }
+  Strava.onChange(() => { if (window.App && App.route === 'home' && !TodayPage.isEditing()) render(document.getElementById('app')); });
   Calendar.onChange(() => { if (window.App && App.route === 'home' && !TodayPage.isEditing()) render(document.getElementById('app')); });
   window.HomePage = { render, bind };
 })();

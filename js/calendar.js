@@ -3,7 +3,7 @@
  * Your private calendar links are stored in YOUR database (config:calendars), never in the code.
  * The Supabase "calendar" function fetches them (browsers can't) and returns plain events.
  * Events are cached on the device so they show instantly and offline.
- * Other sources (e.g. Strava) can add events with Calendar.register(name, async (date) => [...]).
+ * Other sources (e.g. Strava) add events with Calendar.register(name, (date) => [{ time, text, source }]) (synchronous, from their own cache).
  */
 (function () {
   const CACHE = 'dd:cal:v1';
@@ -20,6 +20,8 @@
 
   const Calendar = {
     feeds,
+    /** Colour for an event's source (a calendar name, or Strava). */
+    colorFor(source) { if (source === 'Strava') return '#3f5f8f'; const f = feeds().find(x => x.name === source); return f ? f.color || '' : ''; },
     register(name, fn) { extra[name] = fn; },
     onChange(fn) { listeners.add(fn); },
     hasProviders: () => feeds().length > 0 || Object.keys(extra).length > 0,
@@ -61,7 +63,10 @@
     },
 
     /** Everything to show on a date: calendar feeds + any registered sources (synchronous part). */
-    external(date) { return Calendar.eventsFor(date); }
+    external(date) {
+      const more = Object.values(extra).flatMap(fn => { try { return fn(date) || []; } catch (e) { return []; } });
+      return Calendar.eventsFor(date).concat(more).sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+    }
   };
   window.Calendar = Calendar;
 })();

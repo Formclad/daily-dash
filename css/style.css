@@ -201,3 +201,58 @@ button.arrow { font: inherit; cursor: pointer; }
 .goal.achieved { border-color: var(--sage-d); }
 .cols { align-items: start; }
 @media (max-width: 520px) { .nav { gap: 2px; padding-left: 4px; padding-right: 4px; } .nav a { font-size: .66rem; } .nav a.sync-dot { width: 10px; } }
+
+/* Health, More, nav tweaks */
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; text-align: center; }
+.stat b { display: block; font-family: var(--hand); font-size: 1.3rem; line-height: 1.1; }
+.stat span { font-size: .72rem; color: var(--soft); }
+.bars { display: flex; gap: 6px; align-items: flex-end; height: 90px; margin-top: 6px; }
+.bar { flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; font-size: .65rem; color: var(--soft); }
+.bar i { display: block; width: 100%; background: var(--sage-d); border-radius: 4px 4px 0 0; min-height: 2px; }
+.act { display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px dotted var(--line); }
+.a-d { width: 74px; flex: none; font-size: .8rem; color: var(--blue); }
+.a-n { font-family: var(--hand); }
+.wrow { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+.wl { width: 70px; flex: none; font-size: .85rem; } .wl small { display: block; color: var(--soft); font-size: .7rem; }
+.wbars { flex: 1; display: flex; gap: 3px; align-items: flex-end; height: 40px; }
+.wbars i { flex: 1; background: var(--rose-d); border-radius: 3px 3px 0 0; opacity: .85; }
+.wbars i.none { background: var(--line); }
+.morelist { display: grid; gap: 12px; }
+.morelink { display: flex; align-items: center; gap: 14px; text-decoration: none; color: var(--ink); min-height: 64px; font-family: var(--hand); font-size: 1.2rem; margin: 0; }
+.more-link { display: none; }
+@media (max-width: 899px) {
+  .nav a.sec { display: none; }
+  .nav a.more-link { display: flex; }
+  .nav a.sync-dot { display: block; }
+}
+@media (min-width: 900px) { .more-link { display: none !important; } }
+.strava-q { display: block; margin-top: 6px; min-height: 44px; padding: 6px 12px; border: 1px dashed var(--blue); border-radius: 10px; background: var(--blue-bg); color: var(--blue); text-align: left; font-size: .85rem; }
+.mh-wrap { border-bottom: 1px dotted var(--line); } .mh-wrap:last-child { border-bottom: 0; } .mh-wrap .mh { border-bottom: 0; }
+
+/* Family */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.chip { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; padding: 0 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); font-size: .95rem; }
+button.chip.on, .chk input:checked + span { color: var(--blue); font-weight: 600; }
+button.chip.on { border-color: var(--blue); background: var(--blue-bg); }
+.chk { cursor: pointer; } .chk input { width: 20px; height: 20px; margin: 0 6px 0 0; }
+.dayc { padding: 0 10px; }
+.x.sm { width: 32px; height: 32px; font-size: 1.1rem; }
+.tin { width: 100%; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); padding: 10px; min-height: 44px; color: var(--ink); }
+.wknav { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 10px; font-family: var(--hand); }
+.arrow.sm { width: 44px; height: 44px; font-size: 1.4rem; }
+.seg { margin-bottom: 10px; }
+.chore { padding: 8px 0; border-bottom: 1px dotted var(--line); }
+.c-t { font-family: var(--hand); font-size: 1.05rem; margin-bottom: 4px; }
+.c-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+.cd { min-height: 48px; border: 1.5px solid var(--line); border-radius: 10px; background: transparent; color: var(--rose-d); font-size: 1.1rem; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 2px; }
+.cd small { font-size: .6rem; color: var(--soft); line-height: 1.4; }
+.cd.on { background: var(--rose); border-color: var(--rose-d); }
+.cd.now { border-color: var(--blue); }
+.cd.off { border-style: dotted; color: var(--line); cursor: default; }
+
+/* colours */
+.cdot { width: 22px; height: 22px; border-radius: 50%; border: 0; flex: none; padding: 0; min-width: 22px; box-shadow: 0 0 0 3px var(--card), 0 0 0 4px var(--line); margin: 0 6px; }
+button.cdot { min-width: 44px; width: 44px; height: 44px; background-clip: content-box; padding: 11px; box-shadow: none; margin: 0; }
+.cdot.s { width: 12px; height: 12px; min-width: 12px; box-shadow: none; margin: 0 4px 0 0; }
+.ev[style*="--c"] { border-left: 3px solid var(--c); padding-left: 8px; }
+.stack label.chip { display: inline-flex; color: var(--ink); }

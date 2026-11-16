@@ -34,6 +34,13 @@
       `<button class="pill" data-act="use-suggest">Use these three</button></div>`;
   };
 
+  /** "Strava has a run today. Count it?" (only when a matching activity exists and the habit isn't ticked). */
+  const stravaPrompt = (h, date) => {
+    const a = Habits.stravaMatch(h, date);
+    return a ? `<button class="strava-q" data-act="strava-count" data-id="${h.id}">Strava has “${U.esc(a.name)}”${a.km ? ' (' + a.km + ' km)' : ''}. Count it?</button>` : '';
+  };
+  window.stravaPrompt = stravaPrompt;
+
   // ---------- cards ----------
   const CARDS = {
     morning(day) {
@@ -56,7 +63,7 @@
       for (let h = a; h <= z; h++) {
         const here = items.filter(s => hourOf(s.t) === h).sort((p, q) => (p.t || '').localeCompare(q.t || ''));
         rows += `<div class="hr ${here.length ? 'has' : ''}"><span class="hl">${h % 12 || 12}<small>${h < 12 ? 'am' : 'pm'}</small></span><div class="hc">` +
-          here.map(s => `<div class="ev"><span class="et">${U.esc(s.t || '')}</span><span class="ex">${U.esc(s.x)}</span>${s.ext ? `<em class="src">${U.esc(s.ext)}</em>` : `<button class="x" data-act="sched-del" data-i="${s.i}" aria-label="Remove ${U.esc(s.x)}">×</button>`}</div>`).join('') +
+          here.map(s => `<div class="ev"${s.ext && Calendar.colorFor(s.ext) ? ` style="--c:${Calendar.colorFor(s.ext)}"` : ''}><span class="et">${U.esc(s.t || '')}</span><span class="ex">${U.esc(s.x)}</span>${s.ext ? `<em class="src">${U.esc(s.ext)}</em>` : `<button class="x" data-act="sched-del" data-i="${s.i}" aria-label="Remove ${U.esc(s.x)}">×</button>`}</div>`).join('') +
           `</div></div>`;
       }
       const add = `<form class="add" data-act="sched-add"><input type="time" name="t" aria-label="Time" required><input type="text" name="x" placeholder="Add to the day" aria-label="What" required autocomplete="off"><button class="pill" type="submit">Add</button></form>`;
@@ -72,7 +79,7 @@
         return `<div class="habit ${st ? 'done' : ''}">` +
           `<div class="hb-main"><div class="hb-name">${U.esc(h.name)}</div><div class="hb-anchor">${U.esc(h.anchor)}</div>` +
           `<div class="hb-v"><b>Full:</b> ${U.esc(h.full)}<br><b>2-min:</b> ${U.esc(h.mini)}</div>` +
-          (n.text ? `<div class="hb-note ${n.tone}">${U.esc(n.text)}</div>` : '') + `</div>` +
+          (n.text ? `<div class="hb-note ${n.tone}">${U.esc(n.text)}</div>` : '') + stravaPrompt(h, date) + `</div>` +
           `<div class="hb-btns"><button class="hbtn ${st === 'full' ? 'on' : ''}" data-act="habit" data-id="${h.id}" data-level="full" aria-pressed="${st === 'full'}">✓<small>full</small></button>` +
           `<button class="hbtn mini ${st === 'mini' ? 'on' : ''}" data-act="habit" data-id="${h.id}" data-level="mini" aria-pressed="${st === 'mini'}">✓<small>2 min</small></button></div></div>`;
       }).join('');
