@@ -30,6 +30,8 @@
         Day.update(date, x => { const v = +btn.dataset.val; U.setPath(x, path, U.getPath(x, path) === v ? null : v); });
       } else if (a === 'habit') {
         Day.update(date, x => { const id = btn.dataset.id; if (x.habits[id] === btn.dataset.level) delete x.habits[id]; else x.habits[id] = btn.dataset.level; });
+      } else if (a === 'strava-count') {
+        Day.update(date, x => { x.habits[btn.dataset.id] = 'full'; });
       } else if (a === 'sched-del') {
         Day.update(date, x => x.sched.splice(+btn.dataset.i, 1));
       } else if (a === 'use-suggest') {

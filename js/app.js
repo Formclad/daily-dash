@@ -16,6 +16,7 @@
     matrix:  { label: 'Matrix',  icon: '▦', page: MatrixPage },
     goals:   { label: 'Goals',   icon: '◎', page: GoalsPage, sec: true },
     meals:   { label: 'Meals',   icon: '❋', page: MealsPage, sec: true },
+    family:  { label: 'Family',  icon: '☺', page: FamilyPage, sec: true },
     health:  { label: 'Health',  icon: '♡', page: HealthPage, sec: true },
     settings:{ label: 'Settings',icon: '⚙', page: SettingsPage, sec: true },
     more:    { label: 'More',    icon: '☰', page: MorePage, hidden: true }
@@ -60,6 +61,8 @@
   MatrixPage.bind(app);
   GoalsPage.bind(app);
   MealsPage.bind(app);
+  HealthPage.bind(app);
+  FamilyPage.bind(app);
   SettingsPage.bind(app, show);
   window.addEventListener('hashchange', () => show(true));
 

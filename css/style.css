@@ -226,3 +226,33 @@ button.arrow { font: inherit; cursor: pointer; }
   .nav a.sync-dot { display: block; }
 }
 @media (min-width: 900px) { .more-link { display: none !important; } }
+.strava-q { display: block; margin-top: 6px; min-height: 44px; padding: 6px 12px; border: 1px dashed var(--blue); border-radius: 10px; background: var(--blue-bg); color: var(--blue); text-align: left; font-size: .85rem; }
+.mh-wrap { border-bottom: 1px dotted var(--line); } .mh-wrap:last-child { border-bottom: 0; } .mh-wrap .mh { border-bottom: 0; }
+
+/* Family */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.chip { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; padding: 0 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); font-size: .95rem; }
+button.chip.on, .chk input:checked + span { color: var(--blue); font-weight: 600; }
+button.chip.on { border-color: var(--blue); background: var(--blue-bg); }
+.chk { cursor: pointer; } .chk input { width: 20px; height: 20px; margin: 0 6px 0 0; }
+.dayc { padding: 0 10px; }
+.x.sm { width: 32px; height: 32px; font-size: 1.1rem; }
+.tin { width: 100%; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); padding: 10px; min-height: 44px; color: var(--ink); }
+.wknav { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 10px; font-family: var(--hand); }
+.arrow.sm { width: 44px; height: 44px; font-size: 1.4rem; }
+.seg { margin-bottom: 10px; }
+.chore { padding: 8px 0; border-bottom: 1px dotted var(--line); }
+.c-t { font-family: var(--hand); font-size: 1.05rem; margin-bottom: 4px; }
+.c-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+.cd { min-height: 48px; border: 1.5px solid var(--line); border-radius: 10px; background: transparent; color: var(--rose-d); font-size: 1.1rem; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 2px; }
+.cd small { font-size: .6rem; color: var(--soft); line-height: 1.4; }
+.cd.on { background: var(--rose); border-color: var(--rose-d); }
+.cd.now { border-color: var(--blue); }
+.cd.off { border-style: dotted; color: var(--line); cursor: default; }
+
+/* colours */
+.cdot { width: 22px; height: 22px; border-radius: 50%; border: 0; flex: none; padding: 0; min-width: 22px; box-shadow: 0 0 0 3px var(--card), 0 0 0 4px var(--line); margin: 0 6px; }
+button.cdot { min-width: 44px; width: 44px; height: 44px; background-clip: content-box; padding: 11px; box-shadow: none; margin: 0; }
+.cdot.s { width: 12px; height: 12px; min-width: 12px; box-shadow: none; margin: 0 4px 0 0; }
+.ev[style*="--c"] { border-left: 3px solid var(--c); padding-left: 8px; }
+.stack label.chip { display: inline-flex; color: var(--ink); }

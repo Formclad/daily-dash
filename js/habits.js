@@ -42,6 +42,12 @@
       return { streak: (todayDone ? 1 : 0) + (missed > 0 ? 0 : run), missed: everDone ? missed : 0, everDone };
     },
 
+    /** A Strava activity on `date` that fits this habit, if it isn't already ticked (else null). */
+    stravaMatch(h, date) {
+      if (!h.strava || Habits.done(h.id, date) || !window.Strava || !Strava.connected) return null;
+      return Strava.forDate(date).find(a => h.strava.includes(a.sport)) || null;
+    },
+
     /** Gentle one-line message for the habit row. */
     note(h, date) {
       const done = Habits.done(h.id, date);

@@ -17,6 +17,9 @@
     weekStart(s) { const d = U.parse(s); const dow = (d.getDay() + 6) % 7; return U.addDays(s, -dow); },
     dow(s) { return U.parse(s).getDay(); },
     fmtLong(s) { return U.parse(s).toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' }); },
+    /** Soft planner colours handed out automatically to people and calendars. */
+    PALETTE: ['#6c8d6b', '#b97b76', '#3f5f8f', '#c49a4a', '#8a6fa8', '#4a9a9a'],
+    nextColor(used) { return U.PALETTE.find(c => !used.includes(c)) || U.PALETTE[used.length % U.PALETTE.length]; },
     id() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); },
     clone(o) { return JSON.parse(JSON.stringify(o)); },
     /** Read/write a nested value using a path like 'eve.well' or 'pri.0.t'. */

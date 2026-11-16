@@ -20,6 +20,8 @@
 
   const Calendar = {
     feeds,
+    /** Colour for an event's source (a calendar name, or Strava). */
+    colorFor(source) { if (source === 'Strava') return '#3f5f8f'; const f = feeds().find(x => x.name === source); return f ? f.color || '' : ''; },
     register(name, fn) { extra[name] = fn; },
     onChange(fn) { listeners.add(fn); },
     hasProviders: () => feeds().length > 0 || Object.keys(extra).length > 0,

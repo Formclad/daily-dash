@@ -19,13 +19,13 @@ window.DD_DEFAULTS = {
   // Habit stacking. days: 0=Sun..6=Sat. perWeek: "any N days a week".
   // These are starter anchors; reword them in the database/Settings later.
   habits: [
-    { id: 'gym',      name: 'Gym',            days: [1, 3, 5], anchor: 'After morning drop-off', full: 'Gym session', mini: '10 minutes of movement' },
+    { id: 'gym',      name: 'Gym',            days: [1, 3, 5], strava: ['WeightTraining', 'Workout', 'Crossfit', 'HighIntensityIntervalTraining'], anchor: 'After morning drop-off', full: 'Gym session', mini: '10 minutes of movement' },
     { id: 'journal',  name: 'Journalling',    days: [0,1,2,3,4,5,6], anchor: 'After I get into bed', full: 'Journal, phone out of bed', mini: 'One sentence' },
     { id: 'shower',   name: 'Night shower',   days: [0,1,2,3,4,5,6], anchor: 'After the kids are settled', full: 'Night shower', mini: 'Quick rinse' },
     { id: 'laundry',  name: 'Laundry',        days: [0,1,2,3,4,5,6], anchor: 'After dinner is cleared up', full: 'Load on with overnight timer; hang in the morning', mini: 'Just set the timer' },
     { id: 'winddown', name: 'Wind-down',      days: [0,1,2,3,4,5,6], anchor: 'When the 9pm alarm goes', full: 'Wind-down routine, in bed for 9:30', mini: 'Phone on charger away from bed' },
-    { id: 'parkrun',  name: 'Parkrun',        days: [6], anchor: 'After I wake on Saturday', full: 'Parkrun', mini: 'A walk around the block' },
-    { id: 'runs',     name: 'Run (2 a week)', perWeek: 2, anchor: 'After a calm morning cuppa', full: 'A run', mini: '10 minute walk or jog' }
+    { id: 'parkrun',  name: 'Parkrun',        days: [6], strava: ['Run'], anchor: 'After I wake on Saturday', full: 'Parkrun', mini: 'A walk around the block' },
+    { id: 'runs',     name: 'Run (2 a week)', perWeek: 2, strava: ['Run', 'TrailRun', 'VirtualRun'], anchor: 'After a calm morning cuppa', full: 'A run', mini: '10 minute walk or jog' }
   ],
 
   // The four Huberman-style body ticks.
