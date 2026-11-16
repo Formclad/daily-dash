@@ -46,6 +46,7 @@
     /** Fetch from the server if the cache is old (or force = true). */
     async refresh(force) {
       const list = feeds();
+      if (Store.peek('feed:calendar')) { lastError = ''; return; }      // Claude is supplying your calendars: the link route is not needed
       if (!list.length || busy || !Sync.signedIn() || !navigator.onLine) return;
       if (!force && Date.now() - (cache.at || 0) < STALE && cache.sig === JSON.stringify(list)) return;
       busy = true;
@@ -66,7 +67,9 @@
         cache = { at: Date.now(), sig: JSON.stringify(list), events };
         try { localStorage.setItem(CACHE, JSON.stringify(cache)); } catch (e) {}
         lastError = (j.errors || []).join('; ');
-      } catch (e) { lastError = e.message; }
+      } catch (e) {
+        lastError = e instanceof TypeError ? 'Could not reach the calendar function (it is probably not set up in Supabase). Calendars can also come from the scheduled Claude sync: see the README, section 7.' : e.message;
+      }
       busy = false;
       listeners.forEach(f => f());
     },
