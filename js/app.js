@@ -13,6 +13,7 @@
     home:    { label: 'Home',    icon: '⌂', page: HomePage },
     plan:    { label: 'Plan',    icon: '✎', page: TodayPage, dated: true },
     journal: { label: 'Journal', icon: '✿', page: TodayPage, dated: true },
+    briefings:{ label: 'Briefings', icon: '✉', page: BriefingsPage, sec: true },
     matrix:  { label: 'Matrix',  icon: '▦', page: MatrixPage },
     goals:   { label: 'Goals',   icon: '◎', page: GoalsPage, sec: true },
     meals:   { label: 'Meals',   icon: '❋', page: MealsPage, sec: true },
@@ -63,6 +64,7 @@
   MealsPage.bind(app);
   HealthPage.bind(app);
   FamilyPage.bind(app);
+  BriefingsPage.bind(app);
   SettingsPage.bind(app, show);
   window.addEventListener('hashchange', () => show(true));
 

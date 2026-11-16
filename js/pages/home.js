@@ -68,6 +68,13 @@
       return tile('☺', 'Family', ['#/family', 'Open'], rows || '<p class="hint">Add your family, chores and routines to see today here.</p>');
     },
 
+    briefings() {
+      const acts = Briefings.actions(), latest = Briefings.recent().slice(0, 3);
+      const rows = acts.slice(0, 3).map(a => `<div class="mh"><button class="box-btn" data-b-tick="${a.bid}|${a.i}" aria-label="Done"><span class="box"></span></button><span class="mh-n small">${U.esc(a.t)}</span></div>`).join('');
+      const recent = latest.map(b => `<div class="ev"><span class="et">${U.esc(Briefings.ago(b.at))}</span><span class="ex">${U.esc(b.title)}</span></div>`).join('');
+      return tile('✉', 'Briefings', ['#/briefings', acts.length ? acts.length + ' need you' : 'Open'], (rows ? `<p class="hint">Needs you</p>${rows}` : '') + (recent || '<p class="hint">Results from your scheduled tasks appear here.</p>'), acts.length ? 'wide' : '');
+    },
+
     journal(day) {
       const answered = day.mind.filter(x => x.trim()).length;
       const eve = ['well', 'diff', 'showed'].filter(k => (day.eve[k] || '').trim()).length;
@@ -76,7 +83,7 @@
         `<label class="qa good"><span class="q">One good thing</span>${Cards.field('eve.good', day.eve.good, '✿', 1)}</label>`);
     }
   };
-  const ORDER = ['focus', 'schedule', 'habits', 'matrix', 'move', 'goals', 'family', 'meals', 'body', 'journal'];
+  const ORDER = ['focus', 'briefings', 'schedule', 'habits', 'matrix', 'move', 'goals', 'family', 'meals', 'body', 'journal'];
 
   let date = U.today();
   const greeting = () => { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; };
@@ -95,6 +102,8 @@
     app.addEventListener('input', e => { if (mine() && e.target.matches('[data-path]')) Day.update(date, d => U.setPath(d, e.target.dataset.path, e.target.value)); });
     app.addEventListener('click', e => {
       if (!mine()) return;
+      const t = e.target.closest('[data-b-tick]');
+      if (t) { const [id, i] = t.dataset.bTick.split('|'); Briefings.tick(id, i); render(app); return; }
       const b = e.target.closest('[data-act]');
       if (b && Day.act(b, date)) render(app);
     });
