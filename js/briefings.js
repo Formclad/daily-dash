@@ -9,16 +9,18 @@
 
   const Briefings = {
     all() { return Store.keys('brief:').map(k => Store.peek(k)).filter(Boolean).sort((a, b) => b.at - a.at); },
-    recent() { const cut = Date.now() - 30 * 864e5; return Briefings.all().filter(b => b.at > cut).slice(0, 60); },
+    recent() { const cut = Date.now() - 30 * 864e5; return Briefings.all().filter(b => b.at > cut && !b.hidden).slice(0, 60); },
     sources() { return [...new Set(Briefings.recent().map(b => b.source))]; },
     color(source) { let h = 0; for (const c of source) h = (h * 31 + c.charCodeAt(0)) >>> 0; return U.PALETTE[h % U.PALETTE.length]; },
 
     /** Items marked "needs Sofia" in the last two weeks that she hasn't ticked off yet. */
     actions() {
       const done = state().done, cut = Date.now() - WEEKS, out = [];
-      Briefings.all().filter(b => b.at > cut).forEach(b => (b.items || []).forEach((it, i) => { if (it.action && !done[`${b.id}|${i}`]) out.push({ ...it, bid: b.id, i, source: b.source, at: b.at }); }));
+      Briefings.all().filter(b => b.at > cut && !b.hidden).forEach(b => (b.items || []).forEach((it, i) => { if (it.action && !done[`${b.id}|${i}`]) out.push({ ...it, bid: b.id, i, source: b.source, at: b.at }); }));
       return out;
     },
+    /** Hide a briefing (it stays in the database, but disappears from every screen). */
+    hide(id) { Store.update('brief:' + id, {}, d => { d.hidden = true; }); },
     tick(bid, i) { Store.update('data:briefstate', { done: {} }, s => { const k = `${bid}|${i}`; s.done[k] ? delete s.done[k] : (s.done[k] = 1); }); },
 
     ago(at) {

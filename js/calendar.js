@@ -21,22 +21,32 @@
   const Calendar = {
     feeds,
     /** Colour for an event's source (a calendar name, or Strava). */
-    colorFor(source) { if (source === 'Strava') return '#3f5f8f'; const f = feeds().find(x => x.name === source); return f ? f.color || '' : ''; },
+    colorFor(source) {
+      if (source === 'Strava') return '#3f5f8f';
+      const f = feeds().find(x => x.name === source);
+      if (f && f.color) return f.color;
+      if (!source) return '';
+      let h = 0; for (const c of source) h = (h * 31 + c.charCodeAt(0)) >>> 0;      // steady colour per calendar name
+      return U.PALETTE[h % U.PALETTE.length];
+    },
+    get pushedAt() { return (Store.peek('feed:calendar') || {}).at || 0; },
     register(name, fn) { extra[name] = fn; },
     onChange(fn) { listeners.add(fn); },
-    hasProviders: () => feeds().length > 0 || Object.keys(extra).length > 0,
+    hasProviders: () => feeds().length > 0 || Object.keys(extra).length > 0 || !!Store.peek('feed:calendar'),
     get error() { return lastError; },
     get fetchedAt() { return cache.at || 0; },
 
     /** Events on a local date 'YYYY-MM-DD', from the cache (instant). Shape: { time, text, source }. */
     eventsFor(date) {
-      return (cache.events || []).filter(e => e.d === date).sort((a, b) => (a.time || '').localeCompare(b.time || ''))
+      const pushed = ((Store.peek('feed:calendar') || {}).events || []);     // events Claude sent from your calendars
+      return (cache.events || []).concat(pushed).filter(e => e.d === date).sort((a, b) => (a.time || '').localeCompare(b.time || ''))
         .map(e => ({ time: e.time, text: e.text, source: e.source }));
     },
 
     /** Fetch from the server if the cache is old (or force = true). */
     async refresh(force) {
       const list = feeds();
+      if (Store.peek('feed:calendar')) { lastError = ''; return; }      // Claude is supplying your calendars: the link route is not needed
       if (!list.length || busy || !Sync.signedIn() || !navigator.onLine) return;
       if (!force && Date.now() - (cache.at || 0) < STALE && cache.sig === JSON.stringify(list)) return;
       busy = true;
@@ -57,7 +67,9 @@
         cache = { at: Date.now(), sig: JSON.stringify(list), events };
         try { localStorage.setItem(CACHE, JSON.stringify(cache)); } catch (e) {}
         lastError = (j.errors || []).join('; ');
-      } catch (e) { lastError = e.message; }
+      } catch (e) {
+        lastError = e instanceof TypeError ? 'Could not reach the calendar function (it is probably not set up in Supabase). Calendars can also come from the scheduled Claude sync: see the README, section 7.' : e.message;
+      }
       busy = false;
       listeners.forEach(f => f());
     },

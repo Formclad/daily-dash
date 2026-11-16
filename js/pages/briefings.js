@@ -14,7 +14,7 @@
         `<button class="pill ghost sm" data-b="matrix" data-id="${a.bid}" data-i="${a.i}">+ Matrix</button></div>`).join('') : '<p class="hint">Nothing waiting on you from your briefings.</p>') + `</section>`;
     const chips = Briefings.sources().length > 1 ? `<div class="chips"><button class="chip ${filter ? '' : 'on'}" data-b="filter" data-v="">All</button>${Briefings.sources().map(s => `<button class="chip ${filter === s ? 'on' : ''}" data-b="filter" data-v="${U.esc(s)}"><i class="cdot s" style="background:${Briefings.color(s)}"></i>${U.esc(s)}</button>`).join('')}</div>` : '';
     const cards = list.map((b, n) => `<details class="card brief" ${n === 0 ? 'open' : ''}><summary><span class="cdot s" style="background:${Briefings.color(b.source)}"></span><span class="bt">${U.esc(b.title)}</span><span class="bw">${U.esc(fmt(b.at))}</span></summary>` +
-      `<div class="bbody">${Briefings.md(b.summary)}${(b.items || []).filter(i => !i.action).length ? '<ul>' + b.items.filter(i => !i.action).map(i => `<li>${U.esc(i.t)}</li>`).join('') + '</ul>' : ''}</div></details>`).join('');
+      `<div class="bbody">${Briefings.md(b.summary)}${(b.items || []).filter(i => !i.action).length ? '<ul>' + b.items.filter(i => !i.action).map(i => `<li>${U.esc(i.t)}</li>`).join('') + '</ul>' : ''}<div class="btn-row"><button class="pill ghost sm" data-b="hide" data-id="${b.id}">Hide this briefing</button></div></div></details>`).join('');
     return `<header class="dayhead"><div class="dh-mid"><h1>Briefings</h1><div class="dh-sub">What your scheduled Claude tasks found</div></div></header>` + needs + chips +
       (cards || '<p class="hint center">No briefings yet. Once your scheduled tasks send their results, they appear here (see the README).</p>');
   }
@@ -28,6 +28,7 @@
       if (!b || !mine()) return;
       const a = b.dataset.b;
       if (a === 'filter') filter = b.dataset.v;
+      else if (a === 'hide') Briefings.hide(b.dataset.id);
       else if (a === 'tick') Briefings.tick(b.dataset.id, b.dataset.i);
       else if (a === 'matrix') {
         const it = (Store.peek('brief:' + b.dataset.id).items || [])[+b.dataset.i];

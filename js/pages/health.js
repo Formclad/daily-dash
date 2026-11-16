@@ -8,12 +8,15 @@
   const mins = s => Strava.fmtTime(s);
 
   function connectCard() {
-    if (!Sync.signedIn()) return `<p class="hint">Sign in under Settings first, then come back to connect Strava.</p>`;
+    if (!Strava.viaClaude && !Sync.signedIn()) return `<p class="hint">Sign in under Settings first.</p>`;
+    if (Strava.viaClaude) {
+      return `<p class="hint">Your Strava activity is brought in by your scheduled Claude sync${Strava.fetchedAt ? ' (updated ' + new Date(Strava.fetchedAt).toLocaleString('en-AU', { weekday: 'short', hour: 'numeric', minute: '2-digit' }) + ')' : ''}. Garmin and Runna workouts show here when they sync to Strava.</p>`;
+    }
     if (Strava.connected) {
       return `<p class="hint">Connected${Strava.athlete ? ' as <b>' + U.esc(Strava.athlete) + '</b>' : ''}. ${Strava.fetchedAt ? 'Updated ' + new Date(Strava.fetchedAt).toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' }) + '.' : ''}</p>` +
         `<div class="btn-row"><button class="pill ghost" data-h="refresh">Refresh</button><button class="pill ghost" data-h="disconnect">Disconnect</button></div>`;
     }
-    if (!Strava.canConnect()) return `<p class="hint">${Strava.error ? '<span class="err">' + U.esc(Strava.error) + '</span>' : (Strava.configured ? 'Checking…' : 'The Strava function needs its keys added in Supabase (see the README).')}</p><div class="btn-row"><button class="pill ghost" data-h="refresh">Check again</button></div>`;
+    if (!Strava.canConnect()) return `<p class="hint">Waiting for the first sync from Claude. It brings in your Strava activity and calendars automatically (see the README).</p>`;
     return `<p class="hint">Link Strava to see your runs and workouts here. If your Garmin watch and Runna already sync to Strava, they will appear too.</p><div class="btn-row"><a class="pill" href="${U.esc(Strava.connectUrl())}">Connect Strava</a></div>`;
   }
 
