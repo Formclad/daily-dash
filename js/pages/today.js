@@ -1,28 +1,15 @@
 /*
- * TODAY PAGE: the planner spread for one day.
- * Layout is split into small section functions (one per card) so a new card
- * is: write a function, add it to SECTIONS. All text/labels come from DD_DEFAULTS
- * or the saved config, never hard-coded in here.
+ * PLAN and JOURNAL pages: the planner spread, split into two tabs.
+ *   plan    = top three (auto-suggested) + schedule
+ *   journal = morning mindset, habit stack, energy & body, evening review
+ * Each card is a small function in CARDS; VIEWS says which cards sit in which column.
  */
 (function () {
   const D = DD_DEFAULTS;
-  const key = date => 'day:' + date;
 
-  /** What a brand-new day looks like. */
-  const blankDay = () => ({
-    mind: ['', '', '', '', ''],
-    pri: [{ t: '', d: false }, { t: '', d: false }, { t: '', d: false }],
-    sched: [],            // [{ t: 'HH:MM', x: 'text' }]
-    habits: {},           // { habitId: 'full' | 'mini' }
-    body: {},             // { sun: true, ... }
-    rate: {},             // { energy: 4, ... }
-    eve: { well: '', diff: '', showed: '', good: '' }
-  });
-  const getDay = date => Object.assign(blankDay(), Store.get(key(date), {}));
-
-  // ---------- small building blocks ----------
-  const card = (n, icon, title, inner, extra = '') =>
-    `<section class="card ${extra}"><header class="card-h"><span class="stamp" aria-hidden="true">${icon}</span><h2>${U.esc(title)}</h2><span class="no">No.${n}</span></header>${inner}</section>`;
+  // ---------- building blocks (also used by the Home dashboard) ----------
+  const card = (icon, title, inner, extra = '') =>
+    `<section class="card ${extra}"><header class="card-h"><span class="stamp" aria-hidden="true">${icon}</span><h2>${U.esc(title)}</h2></header>${inner}</section>`;
 
   const field = (path, val, ph, rows = 1) =>
     `<textarea class="line" rows="${rows}" data-path="${path}" placeholder="${U.esc(ph || '')}" aria-label="${U.esc(ph || path)}">${U.esc(val)}</textarea>`;
@@ -35,23 +22,33 @@
     [1, 2, 3, 4, 5].map(n => `<button class="dot ${val === n ? 'on' : ''}" data-act="rate" data-path="${path}" data-val="${n}" role="radio" aria-checked="${val === n}" aria-label="${n}">${n}</button>`).join('') +
     `</span></div>`;
 
-  // ---------- sections ----------
-  const SECTIONS = [
-    function morning(day) {
+  const priRows = day => day.pri.map((x, i) =>
+    `<div class="pri"><button class="box-btn ${x.d ? 'on' : ''}" data-act="toggle" data-path="pri.${i}.d" role="checkbox" aria-checked="${!!x.d}" aria-label="Done"><span class="box">${x.d ? '✓' : ''}</span></button>` +
+    `<textarea class="line ${x.d ? 'struck' : ''}" rows="1" data-path="pri.${i}.t" placeholder="Priority ${i + 1}" aria-label="Priority ${i + 1}">${U.esc(x.t)}</textarea></div>`).join('');
+
+  /** "Suggested by your matrix" strip, shown when the matrix has picks. */
+  const suggestBox = () => {
+    const s = Matrix.suggest(U.today());
+    if (!s.length) return `<p class="hint">Add tasks in <a href="#/matrix">Matrix</a> and the top three will be suggested here.</p>`;
+    return `<div class="suggest"><span class="sg-h">Suggested by your matrix</span><ol>${s.map(t => `<li>${U.esc(t.t)}</li>`).join('')}</ol>` +
+      `<button class="pill" data-act="use-suggest">Use these three</button></div>`;
+  };
+
+  // ---------- cards ----------
+  const CARDS = {
+    morning(day) {
       const p = Store.get('config:prompts', U.clone(D.prompts));
       const rows = p.morning.map((q, i) => `<label class="qa"><span class="q">${U.esc(q)}</span>${field('mind.' + i, day.mind[i] || '', 'a line is plenty')}</label>`).join('');
-      return card(1, '☀', 'Morning mindset', rows + '<p class="hint">About three minutes. One line each.</p>');
+      return card('☀', 'Morning mindset', rows + '<p class="hint">About three minutes. One line each.</p>');
     },
 
-    function priorities(day) {
+    priorities(day, date) {
       const p = Store.get('config:prompts', U.clone(D.prompts));
-      const rows = day.pri.map((x, i) =>
-        `<div class="pri"><button class="box-btn ${x.d ? 'on' : ''}" data-act="toggle" data-path="pri.${i}.d" role="checkbox" aria-checked="${!!x.d}" aria-label="Done"><span class="box">${x.d ? '✓' : ''}</span></button>` +
-        `<textarea class="line ${x.d ? 'struck' : ''}" rows="1" data-path="pri.${i}.t" placeholder="Priority ${i + 1}" aria-label="Priority ${i + 1}">${U.esc(x.t)}</textarea></div>`).join('');
-      return card(2, '✎', 'Top three', rows + `<p class="ferriss"><span>Ferriss question</span>${U.esc(p.ferriss)}</p>`);
+      return card('✎', 'Top three', priRows(day) + (date === U.today() ? suggestBox() : '') +
+        `<p class="ferriss"><span>Ferriss question</span>${U.esc(p.ferriss)}</p>`);
     },
 
-    function schedule(day, date, ext) {
+    schedule(day, date, ext) {
       const { startHour: a, endHour: z } = D.schedule;
       const items = day.sched.map((s, i) => ({ ...s, i })).concat((ext || []).map(e => ({ t: e.time, x: e.text, ext: e.source })));
       const hourOf = t => Math.min(z, Math.max(a, parseInt((t || '0').slice(0, 2), 10) || a));
@@ -63,12 +60,12 @@
           `</div></div>`;
       }
       const add = `<form class="add" data-act="sched-add"><input type="time" name="t" aria-label="Time" required><input type="text" name="x" placeholder="Add to the day" aria-label="What" required autocomplete="off"><button class="pill" type="submit">Add</button></form>`;
-      return card(3, '◷', 'Today’s schedule', `<div class="strip">${rows}</div>${add}`);
+      return card('◷', 'Today’s schedule', `<div class="strip">${rows}</div>${add}`);
     },
 
-    function habits(day, date) {
+    habits(day, date) {
       const list = Habits.forDay(date);
-      if (!list.length) return card(4, '✿', 'Habits', '<p class="hint">Nothing scheduled today. Rest counts too.</p>');
+      if (!list.length) return card('✿', 'Habits', '<p class="hint">Nothing scheduled today. Rest counts too.</p>');
       const rows = list.map(h => {
         const st = day.habits[h.id];
         const n = Habits.note(h, date);
@@ -79,46 +76,52 @@
           `<div class="hb-btns"><button class="hbtn ${st === 'full' ? 'on' : ''}" data-act="habit" data-id="${h.id}" data-level="full" aria-pressed="${st === 'full'}">✓<small>full</small></button>` +
           `<button class="hbtn mini ${st === 'mini' ? 'on' : ''}" data-act="habit" data-id="${h.id}" data-level="mini" aria-pressed="${st === 'mini'}">✓<small>2 min</small></button></div></div>`;
       }).join('');
-      return card(4, '✿', 'Habit stack', rows + '<p class="hint">Either version counts. A missed day is just information.</p>');
+      return card('✿', 'Habit stack', rows + '<p class="hint">Either version counts. A missed day is just information.</p>');
     },
 
-    function body(day) {
+    body(day) {
       const ticks = D.bodyChecks.map(c => tick('body.' + c.id, day.body[c.id], c.label)).join('');
       const rates = D.morningRatings.map(r => rating('rate.' + r.id, day.rate[r.id], r.label)).join('');
-      return card(5, '☾', 'Energy & body', `<div class="ticks">${ticks}</div><div class="rates">${rates}</div>`);
+      return card('☾', 'Energy & body', `<div class="ticks">${ticks}</div><div class="rates">${rates}</div>`);
     },
 
-    function evening(day) {
+    evening(day) {
       const rates = D.eveningRatings.map(r => rating('rate.' + r.id, day.rate[r.id], r.label)).join('');
-      return card(6, '★', 'Evening review',
+      return card('★', 'Evening review',
         `<label class="qa"><span class="q">What went well?</span>${field('eve.well', day.eve.well, 'a line or two', 2)}</label>` +
         `<label class="qa"><span class="q">What I’d do differently</span>${field('eve.diff', day.eve.diff, 'no judgement, just notes', 2)}</label>` +
         `<label class="qa"><span class="q">Who did I show up well for today?</span>${field('eve.showed', day.eve.showed, '', 1)}</label>` +
         `<div class="rates">${rates}</div>` +
         `<label class="qa good"><span class="q">One good thing</span>${field('eve.good', day.eve.good, '✿', 1)}</label>`, 'evening');
     }
-  ];
+  };
+
+  // Which cards go in which column (columns stack on phones).
+  const VIEWS = {
+    plan:    { left: ['priorities'], right: ['schedule'] },
+    journal: { left: ['morning', 'body'], right: ['habits', 'evening'] }
+  };
 
   // ---------- page ----------
-  let current = null, extCache = {};
+  let current = null, view = 'plan', extCache = {};
 
   function html(date) {
-    const day = getDay(date);
+    const day = Day.get(date);
     const isToday = date === U.today();
-    const head = `<header class="dayhead"><a class="arrow" href="#/today/${U.addDays(date, -1)}" aria-label="Previous day">‹</a>` +
+    const go = d => `#/${view}/${d}`;
+    const head = `<header class="dayhead"><a class="arrow" href="${go(U.addDays(date, -1))}" aria-label="Previous day">‹</a>` +
       `<div class="dh-mid"><h1>${U.esc(U.fmtLong(date))}</h1>` +
-      `<div class="dh-sub">${isToday ? '<span class="stamp-today">today</span>' : `<a href="#/today/${U.today()}">back to today</a>`}</div></div>` +
-      `<a class="arrow" href="#/today/${U.addDays(date, 1)}" aria-label="Next day">›</a></header>`;
-    // Two columns on desktop (CSS stacks them on phones): planning on the left, tracking on the right.
-    const parts = SECTIONS.map(fn => fn(day, date, extCache[date]));
-    const half = Math.ceil(parts.length / 2);
-    return head + `<div class="cols"><div class="col">${parts.slice(0, half).join('')}</div><div class="col">${parts.slice(half).join('')}</div></div>` + '<p class="foot">Be kind to yourself. Tomorrow is a fresh page.</p>';
+      `<div class="dh-sub">${isToday ? '<span class="stamp-today">today</span>' : `<a href="${go(U.today())}">back to today</a>`}</div></div>` +
+      `<a class="arrow" href="${go(U.addDays(date, 1))}" aria-label="Next day">›</a></header>`;
+    const col = names => `<div class="col">${names.map(n => CARDS[n](day, date, extCache[date])).join('')}</div>`;
+    const v = VIEWS[view];
+    return head + `<div class="cols">${col(v.left)}${col(v.right)}</div><p class="foot">Be kind to yourself. Tomorrow is a fresh page.</p>`;
   }
 
   const isEditing = () => /^(INPUT|TEXTAREA)$/.test((document.activeElement || {}).tagName || '');
 
-  function render(app, date) {
-    current = date;
+  function render(app, date, v) {
+    current = date; view = v || view;
     const y = window.scrollY;
     app.innerHTML = html(date);
     window.scrollTo(0, y);
@@ -127,37 +130,34 @@
     }
   }
 
+  const mine = () => window.App && (App.route === 'plan' || App.route === 'journal');
+
   /** One-time event wiring (delegation, so re-rendering never loses handlers). */
   function bind(app) {
-    const save = (mut) => Store.update(key(current), blankDay(), mut);
-
     app.addEventListener('input', e => {
       const t = e.target;
-      if (current && t.matches('[data-path]')) save(d => U.setPath(d, t.dataset.path, t.value));
+      if (mine() && t.matches('[data-path]')) Day.update(current, d => U.setPath(d, t.dataset.path, t.value));
     });
 
     app.addEventListener('click', e => {
+      if (!mine()) return;
       const b = e.target.closest('[data-act]');
-      if (!b || !current || b.tagName === 'FORM') return;
-      const act = b.dataset.act;
-      if (act === 'toggle') save(d => U.setPath(d, b.dataset.path, !U.getPath(d, b.dataset.path)));
-      else if (act === 'rate') save(d => { const v = +b.dataset.val; U.setPath(d, b.dataset.path, U.getPath(d, b.dataset.path) === v ? null : v); });
-      else if (act === 'habit') save(d => { const id = b.dataset.id; if (d.habits[id] === b.dataset.level) delete d.habits[id]; else d.habits[id] = b.dataset.level; });
-      else if (act === 'sched-del') save(d => d.sched.splice(+b.dataset.i, 1));
-      else return;
-      render(app, current);
+      if (!b || b.tagName === 'FORM') return;
+      if (Day.act(b, current)) render(app, current);
     });
 
     app.addEventListener('submit', e => {
+      if (!mine()) return;
       const f = e.target.closest('form[data-act="sched-add"]');
       if (!f) return;
       e.preventDefault();
       const t = f.t.value, x = f.x.value.trim();
       if (!t || !x) return;
-      save(d => { d.sched.push({ t, x }); d.sched.sort((p, q) => p.t.localeCompare(q.t)); });
+      Day.update(current, d => { d.sched.push({ t, x }); d.sched.sort((p, q) => p.t.localeCompare(q.t)); });
       render(app, current);
     });
   }
 
-  window.TodayPage = { render, bind, isEditing, current: () => current };
+  window.TodayPage = { render, bind, isEditing };
+  window.Cards = { card, field, tick, rating, priRows, suggestBox };   // reused by Home
 })();

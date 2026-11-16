@@ -1,0 +1,80 @@
+/*
+ * HOME: the dashboard. A grid of tiles, each a small summary with quick actions.
+ * Add a tile = write a function in TILES and list it in ORDER.
+ */
+(function () {
+  const D = DD_DEFAULTS;
+  const tile = (icon, title, link, inner, cls = '') =>
+    `<section class="card tile ${cls}"><header class="card-h"><span class="stamp" aria-hidden="true">${icon}</span><h2>${U.esc(title)}</h2>${link ? `<a class="more" href="${link[0]}">${link[1]} ›</a>` : ''}</header>${inner}</section>`;
+
+  const TILES = {
+    focus(day) {
+      const body = Cards.priRows(day) + (Matrix.suggest(U.today()).length ? Cards.suggestBox() : '');
+      return tile('✎', 'Today’s focus', ['#/plan', 'Plan'], body, 'wide');
+    },
+
+    schedule(day, date, ext) {
+      const items = day.sched.map(s => ({ t: s.t, x: s.x })).concat((ext || []).map(e => ({ t: e.time, x: e.text, ext: e.source })))
+        .sort((a, b) => (a.t || '').localeCompare(b.t || ''));
+      const rows = items.slice(0, 7).map(s => `<div class="ev"><span class="et">${U.esc(s.t || '')}</span><span class="ex">${U.esc(s.x)}</span>${s.ext ? `<em class="src">${U.esc(s.ext)}</em>` : ''}</div>`).join('');
+      return tile('◷', 'Schedule', ['#/plan', 'Edit'], rows || '<p class="hint">A clear day so far.</p>');
+    },
+
+    habits(day, date) {
+      const list = Habits.forDay(date);
+      const n = list.filter(h => day.habits[h.id]).length;
+      const rows = list.map(h => {
+        const st = day.habits[h.id];
+        return `<div class="mh ${st ? 'done' : ''}"><span class="mh-n">${U.esc(h.name)}</span>` +
+          `<button class="hbtn ${st === 'full' ? 'on' : ''}" data-act="habit" data-id="${h.id}" data-level="full" aria-pressed="${st === 'full'}" aria-label="${U.esc(h.name)} full">✓<small>full</small></button>` +
+          `<button class="hbtn mini ${st === 'mini' ? 'on' : ''}" data-act="habit" data-id="${h.id}" data-level="mini" aria-pressed="${st === 'mini'}" aria-label="${U.esc(h.name)} 2 minute">✓<small>2 min</small></button></div>`;
+      }).join('');
+      const bar = list.length ? `<div class="prog" aria-hidden="true"><i style="width:${Math.round(100 * n / list.length)}%"></i></div><p class="hint">${n} of ${list.length} today</p>` : '';
+      return tile('✿', 'Habits', ['#/journal', 'Details'], bar + (rows || '<p class="hint">Nothing scheduled today. Rest counts too.</p>'));
+    },
+
+    matrix(day, date) {
+      const c = Matrix.counts(date);
+      const cells = Matrix.QUADS.map(q => `<a class="qc q${q.n}" href="#/matrix"><b>${c[q.n]}</b><span>${q.name}</span></a>`).join('');
+      return tile('▦', 'Matrix', ['#/matrix', 'Open'], `<div class="qgrid">${cells}</div>`);
+    },
+
+    body(day) {
+      const ticks = D.bodyChecks.map(b => Cards.tick('body.' + b.id, day.body[b.id], b.label)).join('');
+      return tile('☾', 'Energy & body', ['#/journal', 'More'], `<div class="ticks">${ticks}</div>${Cards.rating('rate.energy', day.rate.energy, 'Energy')}`);
+    },
+
+    journal(day) {
+      const answered = day.mind.filter(x => x.trim()).length;
+      const eve = ['well', 'diff', 'showed'].filter(k => (day.eve[k] || '').trim()).length;
+      return tile('✿', 'Journal', ['#/journal', 'Open'],
+        `<p class="hint">Morning mindset: ${answered} of 5 answered<br>Evening review: ${eve ? eve + ' of 3 written' : 'not started'}</p>` +
+        `<label class="qa good"><span class="q">One good thing</span>${Cards.field('eve.good', day.eve.good, '✿', 1)}</label>`);
+    }
+  };
+  const ORDER = ['focus', 'schedule', 'habits', 'matrix', 'body', 'journal'];
+
+  let date = U.today(), extCache = {};
+  const greeting = () => { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; };
+
+  function render(app) {
+    date = U.today();
+    const day = Day.get(date);
+    const y = window.scrollY;
+    app.innerHTML = `<header class="dayhead home"><div class="dh-mid"><h1>${greeting()}</h1><div class="dh-sub">${U.esc(U.fmtLong(date))}</div></div></header>` +
+      `<div class="dash">${ORDER.map(k => TILES[k](day, date, extCache[date])).join('')}</div>`;
+    window.scrollTo(0, y);
+    if (Calendar.hasProviders() && !extCache[date]) Calendar.external(date).then(ev => { extCache[date] = ev; if (window.App && App.route === 'home' && !TodayPage.isEditing()) render(app); });
+  }
+
+  const mine = () => window.App && App.route === 'home';
+  function bind(app) {
+    app.addEventListener('input', e => { if (mine() && e.target.matches('[data-path]')) Day.update(date, d => U.setPath(d, e.target.dataset.path, e.target.value)); });
+    app.addEventListener('click', e => {
+      if (!mine()) return;
+      const b = e.target.closest('[data-act]');
+      if (b && Day.act(b, date)) render(app);
+    });
+  }
+  window.HomePage = { render, bind };
+})();

@@ -3,11 +3,11 @@
  * Bump VERSION whenever you change any app file so phones pick up the update.
  * Supabase requests are cross-origin and are NOT touched here.
  */
-const VERSION = 'dd-v2';
+const VERSION = 'dd-v3';
 const FILES = [
   './', 'index.html', 'manifest.webmanifest', 'css/style.css',
-  'js/config.js', 'js/defaults.js', 'js/util.js', 'js/store.js', 'js/sync.js', 'js/calendar.js', 'js/habits.js',
-  'js/pages/today.js', 'js/pages/settings.js', 'js/app.js',
+  'js/config.js', 'js/defaults.js', 'js/util.js', 'js/store.js', 'js/sync.js', 'js/calendar.js', 'js/habits.js', 'js/matrix.js', 'js/day.js',
+  'js/pages/today.js', 'js/pages/home.js', 'js/pages/matrix.js', 'js/pages/settings.js', 'js/app.js',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'
 ];
 

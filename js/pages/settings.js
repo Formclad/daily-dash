@@ -42,7 +42,9 @@
   function render(app) { app.innerHTML = html(); }
 
   function bind(app, rerender) {
+    const mine = () => window.App && App.route === 'settings';
     app.addEventListener('submit', async e => {
+      if (!mine()) return;
       const f = e.target.closest('form[data-set]');
       if (!f) return;
       e.preventDefault();
@@ -62,6 +64,7 @@
     });
 
     app.addEventListener('click', e => {
+      if (!mine()) return;
       const b = e.target.closest('button[data-set]');
       if (!b) return;
       const a = b.dataset.set;
@@ -85,6 +88,7 @@
     });
 
     app.addEventListener('change', async e => {
+      if (!mine()) return;
       const inp = e.target.closest('input[data-set="import"]');
       if (!inp || !inp.files[0]) return;
       const msg = document.getElementById('bk-msg');

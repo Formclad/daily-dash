@@ -51,6 +51,12 @@ window.DD_DEFAULTS = {
   // Time strip shows these hours (24h clock).
   schedule: { startHour: 6, endHour: 21 },
 
+  // Task categories for the matrix (edit freely).
+  categories: ['Formclad', 'TAFE', 'Family', 'Health', 'Study', 'Home', 'Personal'],
+
+  // A task is "urgent" when it is due within this many days (or overdue).
+  urgentDays: 2,
+
   // Remind to back up after this many days.
   backupReminderDays: 7
 };
