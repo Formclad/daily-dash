@@ -69,6 +69,15 @@ Scheduled tasks send a copy of their result to a private drop-box (a Supabase fu
 3. **Deploy** a function named exactly `briefing` from `supabase/functions/briefing/index.ts` with **Verify JWT switched OFF** (scheduled tasks have no login, so the secret key is the lock).
 4. Each scheduled task then ends with a short "dashboard step" that posts: `source`, `title`, `kind` (`briefing` or `task`), `summary` (plain text; `**bold**`, `- ` bullets and `## ` headings display nicely) and `items` (`t`, optional `due` as `YYYY-MM-DD`, and `action: true` for things that need you).
 
+## 7. Easiest route for calendars and Strava: let Claude bring them in
+
+Instead of sections 4 and 5, a **scheduled Claude task** can read your Google Calendar, Outlook and Strava through Claude's own connectors and send the results to the same drop-box as your briefings (the `briefing` function, redeployed with the latest code). No calendar links, no Strava developer app and no extra functions are needed. The task sends two data feeds:
+
+- `{"feed": "calendar", "events": [{"d": "YYYY-MM-DD", "time": "HH:MM", "text": "...", "source": "calendar name"}]}`: shown on the schedule, with a colour per calendar.
+- `{"feed": "strava", "athlete": "...", "activities": [{"id", "name", "sport", "date", "time", "km", "secs", "up", "hr"}]}`: shown on Health and Home, and used for the "count it?" habit prompts.
+
+Each run replaces the previous feed, so the dashboard always shows the latest picture. Sections 4 and 5 still work and can be used alongside this.
+
 ## How syncing works
 Each day (and each setting) is one record. Edits save on the device instantly, so the app opens fast and works offline, then upload automatically when online. If two devices edit the same day, the most recent edit wins. Use **Settings > Export backup** regularly (the app nudges you weekly).
 
