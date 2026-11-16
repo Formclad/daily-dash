@@ -48,6 +48,18 @@ The app reads each calendar's **private iCal link**. A small free Supabase funct
 
 Treat these links like passwords: anyone with a link can read that calendar. In Google you can reset a link ("Reset secret address") if one is ever shared by mistake.
 
+## 5. Link Strava (runs, workouts; Garmin and Runna too if they sync to Strava)
+
+Garmin Connect has no personal-use data link, but Garmin watches and Runna can both send activities to Strava, so Strava covers all three. Your Strava secret and tokens stay inside Supabase, never in the browser or this repo.
+
+1. **Create a Strava app:** <https://www.strava.com/settings/api> > create an app. Website: your GitHub Pages address. **Authorization Callback Domain:** just the domain part, for example `<account>.github.io` (no https://, no path). Note the **Client ID** and **Client Secret**. Never paste the secret in chat, GitHub or the app.
+2. **Create the private table:** Supabase **SQL Editor** > new snippet > paste `supabase/strava.sql` > Run.
+3. **Add the secrets:** **Edge Functions** > **Secrets** (or Project Settings > Edge Functions) > add `STRAVA_CLIENT_ID` and `STRAVA_CLIENT_SECRET`.
+4. **Deploy the function:** Edge Functions > Deploy a new function > Via Editor > name it exactly `strava` > paste `supabase/functions/strava/index.ts` > keep **Verify JWT** on > Deploy.
+5. In the app open **Health** (under More on a phone) > **Connect Strava** > approve on Strava. You land back in the app and your activity appears. Garmin and Runna activities show once they have synced into Strava.
+
+Activities also appear on the day's schedule (tagged Strava), and Home has a Movement tile.
+
 ## How syncing works
 Each day (and each setting) is one record. Edits save on the device instantly, so the app opens fast and works offline, then upload automatically when online. If two devices edit the same day, the most recent edit wins. Use **Settings > Export backup** regularly (the app nudges you weekly).
 
