@@ -92,12 +92,12 @@
     date = U.today();
     const day = Day.get(date);
     const y = window.scrollY;
-    app.innerHTML = `<header class="dayhead home"><div class="dh-mid"><h1>${greeting()}</h1><div class="dh-sub">${U.esc(U.fmtLong(date))}</div></div></header>` +
+    app.innerHTML = `<header class="dayhead home"><div class="dh-mid"><h1>Dashboard</h1><div class="dh-sub">${U.esc(U.fmtLong(date))}</div></div></header>` +
       `<div class="dash">${ORDER.map(k => TILES[k](day, date, Calendar.external(date))).join('')}</div>`;
     window.scrollTo(0, y);
   }
 
-  const mine = () => window.App && App.route === 'home';
+  const mine = () => window.App && App.route === 'dash';
   function bind(app) {
     app.addEventListener('input', e => { if (mine() && e.target.matches('[data-path]')) Day.update(date, d => U.setPath(d, e.target.dataset.path, e.target.value)); });
     app.addEventListener('click', e => {
@@ -108,7 +108,7 @@
       if (b && Day.act(b, date)) render(app);
     });
   }
-  Strava.onChange(() => { if (window.App && App.route === 'home' && !TodayPage.isEditing()) render(document.getElementById('app')); });
-  Calendar.onChange(() => { if (window.App && App.route === 'home' && !TodayPage.isEditing()) render(document.getElementById('app')); });
+  Strava.onChange(() => { if (window.App && App.route === 'dash' && !TodayPage.isEditing()) render(document.getElementById('app')); });
+  Calendar.onChange(() => { if (window.App && App.route === 'dash' && !TodayPage.isEditing()) render(document.getElementById('app')); });
   window.HomePage = { render, bind };
 })();

@@ -10,12 +10,15 @@
 
   // route name -> { label, icon, page }   (order = order in the navigation)
   const PAGES = {
-    home:    { label: 'Home',    icon: '⌂', page: HomePage },
+    home:    { label: 'Home',    icon: '⌂', page: BriefPage },
     plan:    { label: 'Plan',    icon: '✎', page: TodayPage, dated: true },
     journal: { label: 'Journal', icon: '✿', page: TodayPage, dated: true },
     briefings:{ label: 'Briefings', icon: '✉', page: BriefingsPage, sec: true },
     matrix:  { label: 'Matrix',  icon: '▦', page: MatrixPage },
     goals:   { label: 'Goals',   icon: '◎', page: GoalsPage, sec: true },
+    coach:   { label: 'Coach',   icon: '❀', page: CoachPage, sec: true },
+    household:{ label: 'Household', icon: '❖', page: HouseholdPage, sec: true },
+    dash:    { label: 'Dashboard', icon: '▤', page: HomePage, sec: true },
     meals:   { label: 'Meals',   icon: '❋', page: MealsPage, sec: true },
     family:  { label: 'Family',  icon: '☺', page: FamilyPage, sec: true },
     health:  { label: 'Health',  icon: '♡', page: HealthPage, sec: true },
@@ -58,7 +61,10 @@
   }
   banner.addEventListener('click', e => { if (e.target.id === 'snooze') { Store.setMeta('snooze', Date.now() + 864e5); updateBanner(); } });
 
+  BriefPage.bind(app);
   HomePage.bind(app);
+  HouseholdPage.bind(app);
+  CoachPage.bind(app);
   TodayPage.bind(app);
   MatrixPage.bind(app);
   GoalsPage.bind(app);

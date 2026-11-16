@@ -11,7 +11,8 @@
     habits: {},           // { habitId: 'full' | 'mini' }
     body: {},             // { sun: true, ... }
     rate: {},             // { energy: 4, ... }
-    eve: { well: '', diff: '', showed: '', good: '' }
+    eve: { well: '', diff: '', showed: '', good: '' },
+    feel: ''              // how you said you feel (Coach check-in)
   });
 
   const Day = {
