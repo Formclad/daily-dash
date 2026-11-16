@@ -14,6 +14,8 @@
     plan:    { label: 'Plan',    icon: '✎', page: TodayPage, dated: true },
     journal: { label: 'Journal', icon: '✿', page: TodayPage, dated: true },
     matrix:  { label: 'Matrix',  icon: '▦', page: MatrixPage },
+    goals:   { label: 'Goals',   icon: '◎', page: GoalsPage },
+    meals:   { label: 'Meals',   icon: '❋', page: MealsPage },
     settings:{ label: 'Settings',icon: '⚙', page: SettingsPage }
   };
 
@@ -52,6 +54,8 @@
   HomePage.bind(app);
   TodayPage.bind(app);
   MatrixPage.bind(app);
+  GoalsPage.bind(app);
+  MealsPage.bind(app);
   SettingsPage.bind(app, show);
   window.addEventListener('hashchange', () => show(true));
 
@@ -65,6 +69,7 @@
 
   show();
   Sync.start();
+  Calendar.refresh();
 
   // Offline support: only works over https (GitHub Pages) or localhost.
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});

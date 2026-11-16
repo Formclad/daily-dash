@@ -179,3 +179,25 @@ button { cursor: pointer; }
 .tk-date { width: 40px !important; padding: 0 !important; color: transparent !important; background: none !important; border: 0 !important; }
 .star { width: 40px; height: 44px; border: 0; background: none; font-size: 1.3rem; color: var(--line); }
 .star.on { color: var(--rose-d); }
+
+/* Settings: calendar feeds */
+.feed { display: flex; align-items: center; gap: 8px; border-bottom: 1px dotted var(--line); min-height: 44px; }
+.fn { font-family: var(--hand); } .fu { flex: 1; font-size: .75rem; color: var(--soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hint .err, .err { color: var(--rose-d); }
+
+/* Goals, meals, shopping */
+button.arrow { font: inherit; cursor: pointer; }
+.soft { color: var(--soft); } .center { text-align: center; }
+.big { font-family: var(--hand); font-size: 1.25rem; margin: 2px 0; }
+.mday { padding: 8px 0; border-bottom: 1px dotted var(--line); }
+.mday.is-today .md-h { color: var(--blue); }
+.md-h { font-family: var(--hand); font-size: 1.05rem; }
+.ms { display: flex; align-items: center; gap: 8px; }
+.ms span { width: 68px; font-size: .75rem; color: var(--soft); flex: none; }
+.ms input { flex: 1; min-width: 0; min-height: 40px; border: 0; border-bottom: 1px solid var(--line); background: transparent; padding: 4px 2px; }
+.ms input:focus { outline: none; border-bottom-color: var(--blue); background: var(--blue-bg); }
+.aisle { font-family: var(--hand); font-size: .95rem; color: var(--blue); margin: 14px 0 2px; font-weight: 600; }
+.add select { border: 1px solid var(--line); border-radius: 10px; background: var(--paper); padding: 10px; min-height: 44px; color: var(--ink); }
+.goal.achieved { border-color: var(--sage-d); }
+.cols { align-items: start; }
+@media (max-width: 520px) { .nav { gap: 2px; padding-left: 4px; padding-right: 4px; } .nav a { font-size: .66rem; } .nav a.sync-dot { width: 10px; } }

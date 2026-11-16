@@ -44,6 +44,17 @@
       return tile('☾', 'Energy & body', ['#/journal', 'More'], `<div class="ticks">${ticks}</div>${Cards.rating('rate.energy', day.rate.energy, 'Energy')}`);
     },
 
+    goals() {
+      const up = Goals.upcoming(3);
+      const rows = up.map(m => `<div class="ev"><span class="et">${m.due ? U.esc(U.parse(m.due).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })) : ''}</span><span class="ex">${U.esc(m.t)}<br><small class="soft">${U.esc(m.goal)}</small></span></div>`).join('');
+      return tile('◎', 'Goals', ['#/goals', 'Open'], rows || '<p class="hint">No milestones yet. Add a goal to start.</p>');
+    },
+
+    meals(day, date) {
+      const dinner = Meals.dinner(date), n = Meals.toBuy();
+      return tile('❋', 'Meals', ['#/meals', 'Plan'], `<p class="hint">Tonight’s dinner</p><p class="big">${dinner ? U.esc(dinner) : '<span class="soft">Not planned yet</span>'}</p><p class="hint">${n ? n + ' on the shopping list' : 'Shopping list is empty'}</p>`);
+    },
+
     journal(day) {
       const answered = day.mind.filter(x => x.trim()).length;
       const eve = ['well', 'diff', 'showed'].filter(k => (day.eve[k] || '').trim()).length;
@@ -52,9 +63,9 @@
         `<label class="qa good"><span class="q">One good thing</span>${Cards.field('eve.good', day.eve.good, '✿', 1)}</label>`);
     }
   };
-  const ORDER = ['focus', 'schedule', 'habits', 'matrix', 'body', 'journal'];
+  const ORDER = ['focus', 'schedule', 'habits', 'matrix', 'goals', 'meals', 'body', 'journal'];
 
-  let date = U.today(), extCache = {};
+  let date = U.today();
   const greeting = () => { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; };
 
   function render(app) {
@@ -62,9 +73,8 @@
     const day = Day.get(date);
     const y = window.scrollY;
     app.innerHTML = `<header class="dayhead home"><div class="dh-mid"><h1>${greeting()}</h1><div class="dh-sub">${U.esc(U.fmtLong(date))}</div></div></header>` +
-      `<div class="dash">${ORDER.map(k => TILES[k](day, date, extCache[date])).join('')}</div>`;
+      `<div class="dash">${ORDER.map(k => TILES[k](day, date, Calendar.external(date))).join('')}</div>`;
     window.scrollTo(0, y);
-    if (Calendar.hasProviders() && !extCache[date]) Calendar.external(date).then(ev => { extCache[date] = ev; if (window.App && App.route === 'home' && !TodayPage.isEditing()) render(app); });
   }
 
   const mine = () => window.App && App.route === 'home';
@@ -76,5 +86,6 @@
       if (b && Day.act(b, date)) render(app);
     });
   }
+  Calendar.onChange(() => { if (window.App && App.route === 'home' && !TodayPage.isEditing()) render(document.getElementById('app')); });
   window.HomePage = { render, bind };
 })();

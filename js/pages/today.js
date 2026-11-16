@@ -103,7 +103,7 @@
   };
 
   // ---------- page ----------
-  let current = null, view = 'plan', extCache = {};
+  let current = null, view = 'plan';
 
   function html(date) {
     const day = Day.get(date);
@@ -113,7 +113,7 @@
       `<div class="dh-mid"><h1>${U.esc(U.fmtLong(date))}</h1>` +
       `<div class="dh-sub">${isToday ? '<span class="stamp-today">today</span>' : `<a href="${go(U.today())}">back to today</a>`}</div></div>` +
       `<a class="arrow" href="${go(U.addDays(date, 1))}" aria-label="Next day">›</a></header>`;
-    const col = names => `<div class="col">${names.map(n => CARDS[n](day, date, extCache[date])).join('')}</div>`;
+    const col = names => `<div class="col">${names.map(n => CARDS[n](day, date, Calendar.external(date))).join('')}</div>`;
     const v = VIEWS[view];
     return head + `<div class="cols">${col(v.left)}${col(v.right)}</div><p class="foot">Be kind to yourself. Tomorrow is a fresh page.</p>`;
   }
@@ -125,9 +125,6 @@
     const y = window.scrollY;
     app.innerHTML = html(date);
     window.scrollTo(0, y);
-    if (Calendar.hasProviders() && !extCache[date]) {
-      Calendar.external(date).then(ev => { extCache[date] = ev; if (current === date && !isEditing()) render(app, date); });
-    }
   }
 
   const mine = () => window.App && (App.route === 'plan' || App.route === 'journal');
@@ -158,6 +155,7 @@
     });
   }
 
+  Calendar.onChange(() => { if (window.App && (App.route === 'plan' || App.route === 'journal') && !isEditing()) render(document.getElementById('app'), current); });
   window.TodayPage = { render, bind, isEditing };
   window.Cards = { card, field, tick, rating, priRows, suggestBox };   // reused by Home
 })();

@@ -80,6 +80,7 @@
       }
       Store.setMeta('lastSync', Date.now());
       setStatus('idle');
+      if (window.Calendar) Calendar.refresh();
     } catch (e) {
       setStatus(navigator.onLine ? 'error' : 'offline', e.message);
     } finally {
@@ -104,6 +105,9 @@
     },
     signOut() { write(SES, null); setStatus('signedout'); },
     now: run,
+    /** For other modules that call Supabase functions. */
+    async accessToken() { const s = await token(); if (!s) throw new Error('Not signed in'); return s.access; },
+    connection: cfg,
     onChange(f) { listeners.add(f); },
     start() {
       setStatus(cfg() ? (read(SES) ? 'idle' : 'signedout') : 'off');

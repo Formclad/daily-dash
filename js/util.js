@@ -17,6 +17,7 @@
     weekStart(s) { const d = U.parse(s); const dow = (d.getDay() + 6) % 7; return U.addDays(s, -dow); },
     dow(s) { return U.parse(s).getDay(); },
     fmtLong(s) { return U.parse(s).toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' }); },
+    id() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); },
     clone(o) { return JSON.parse(JSON.stringify(o)); },
     /** Read/write a nested value using a path like 'eve.well' or 'pri.0.t'. */
     getPath(o, path) { return path.split('.').reduce((a, k) => (a == null ? a : a[k]), o); },
