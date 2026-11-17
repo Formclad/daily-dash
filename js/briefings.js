@@ -5,7 +5,7 @@
  */
 (function () {
   const WEEKS = 14 * 864e5;
-  const state = () => Store.get('data:briefstate', { done: {} });
+  const state = () => Object.assign({ done: {}, imported: {} }, Store.get('data:briefstate', {}));
 
   const Briefings = {
     all() { return Store.keys('brief:').map(k => Store.peek(k)).filter(Boolean).sort((a, b) => b.at - a.at); },
@@ -21,8 +21,31 @@
     },
     /** Hide a briefing (it stays in the database, but disappears from every screen). */
     hide(id) { Store.update('brief:' + id, {}, d => { d.hidden = true; }); },
-    setDone(bid, i, v) { Store.update('data:briefstate', { done: {} }, s => { const k = `${bid}|${i}`; v ? (s.done[k] = 1) : delete s.done[k]; }); },
-    tick(bid, i) { Store.update('data:briefstate', { done: {} }, s => { const k = `${bid}|${i}`; s.done[k] ? delete s.done[k] : (s.done[k] = 1); }); },
+    setDone(bid, i, v) {
+      const k = `${bid}|${i}`;
+      Store.update('data:briefstate', { done: {}, imported: {} }, s => { v ? (s.done[k] = 1) : delete s.done[k]; });
+      const tid = (state().imported || {})[k];
+      if (tid && Matrix.all().some(t => t.id === tid)) Matrix.patch(tid, { done: !!v });     // tick here = tick in the Matrix
+    },
+    tick(bid, i) { Briefings.setDone(bid, i, !state().done[`${bid}|${i}`]); },
+
+    /** Which area a briefing's tasks belong to. */
+    area(source) { return /(bills|estimate|marianne|triage|morning briefing|weekly status|formclad)/i.test(source) ? 'Formclad' : 'Personal'; },
+
+    /**
+     * Every "needs you" item becomes a Matrix task (once), so there is ONE list of things to do.
+     * Due date: the one in the briefing, otherwise two days after it arrived.
+     */
+    importToMatrix() {
+      const st = state(), made = {};
+      Briefings.actions().forEach(a => {
+        const k = `${a.bid}|${a.i}`;
+        if (st.imported[k]) return;
+        const arrived = U.ymd(new Date(a.at));
+        made[k] = Matrix.add({ t: a.t, due: a.due || U.addDays(arrived, 2), imp: true, cat: Briefings.area(a.source), src: 'briefing', sk: k });
+      });
+      if (Object.keys(made).length) Store.update('data:briefstate', { done: {}, imported: {} }, s => { s.imported = Object.assign(s.imported || {}, made); });
+    },
 
     ago(at) {
       const m = Math.round((Date.now() - at) / 60000);

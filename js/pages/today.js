@@ -78,12 +78,12 @@
         const n = Habits.note(h, date);
         return `<div class="habit ${st ? 'done' : ''}">` +
           `<div class="hb-main"><div class="hb-name">${U.esc(h.name)}</div><div class="hb-anchor">${U.esc(h.anchor)}</div>` +
-          `<div class="hb-v"><b>Full:</b> ${U.esc(h.full)}<br><b>2-min:</b> ${U.esc(h.mini)}</div>` +
+          `<div class="hb-v"><b>Full:</b> ${U.esc(h.full)}<br><b>Easy:</b> ${U.esc(h.mini)}</div>` +
           (n.text ? `<div class="hb-note ${n.tone}">${U.esc(n.text)}</div>` : '') + stravaPrompt(h, date) + `</div>` +
           `<div class="hb-btns"><button class="hbtn ${st === 'full' ? 'on' : ''}" data-act="habit" data-id="${h.id}" data-level="full" aria-pressed="${st === 'full'}">✓<small>full</small></button>` +
-          `<button class="hbtn mini ${st === 'mini' ? 'on' : ''}" data-act="habit" data-id="${h.id}" data-level="mini" aria-pressed="${st === 'mini'}">✓<small>2 min</small></button></div></div>`;
+          `<button class="hbtn mini ${st === 'mini' ? 'on' : ''}" data-act="habit" data-id="${h.id}" data-level="mini" aria-pressed="${st === 'mini'}">✓<small>easy</small></button></div></div>`;
       }).join('');
-      return card('✿', 'Habit stack', rows + '<p class="hint">Either version counts. A missed day is just information.</p>');
+      return card('✿', 'Habit stack', rows + '<p class="hint"><b>Full</b> is the plan. <b>Easy</b> is a smaller version for a hard day. Either one counts and keeps your streak. A missed day is just information.</p>');
     },
 
     body(day) {

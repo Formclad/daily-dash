@@ -68,12 +68,13 @@
     }).join('') + `</div></div>`).join('');
     const label = `${U.parse(week).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })} to ${U.parse(U.addDays(week, 6)).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}`;
     const manage = chores().map(c => `<div class="task"><div class="tk-main"><div class="tk-t">${U.esc(c.t)}</div><div class="tk-m">${c.who.map(id => (ms.find(m => m.id === id) || {}).name).filter(Boolean).map(U.esc).join(', ') || 'nobody yet'} · ${c.days.length === 7 ? 'every day' : DAYS.filter(([d]) => c.days.includes(d)).map(([, l], i) => l).join(' ')}</div></div><button class="x" data-f="c-del" data-id="${c.id}" aria-label="Delete chore">×</button></div>`).join('');
-    return `<section class="card"><header class="card-h"><span class="stamp">★</span><h2>Chore chart</h2><span class="no">${got} of ${total} ★</span></header>` +
+    const how = `<details class="card"><summary class="how">How does this work?</summary><ol class="coach-steps"><li>Add everyone above.</li><li>Add a chore below, choose who does it, and tick the days (weekends are ticked for you).</li><li>Each week the chart shows a row per chore. The kids tap the star on the day they do it.</li><li>The top right shows the week’s star tally. Use the arrows to look at other weeks.</li></ol></details>`;
+    return how + `<section class="card"><header class="card-h"><span class="stamp">★</span><h2>Chore chart</h2><span class="no">${got} of ${total} ★</span></header>` +
       `<div class="wknav"><button class="arrow sm" data-f="wk" data-n="-7" aria-label="Previous week">‹</button><span>${label}</span><button class="arrow sm" data-f="wk" data-n="7" aria-label="Next week">›</button></div>` +
       (rows || '<p class="hint">No chores for this person yet. Add one below.</p>') + `</section>` +
       `<section class="card"><header class="card-h"><span class="stamp">＋</span><h2>Add a chore</h2></header>` +
       `<form class="stack" data-f="c-add"><input class="tin" type="text" name="t" placeholder="e.g. Feed the pet" required autocomplete="off" aria-label="Chore"><div class="chips">${whoBoxes()}</div>` +
-      `<div class="chips">${DAYS.map(([d, l]) => `<label class="chip chk dayc"><input type="checkbox" name="day" value="${d}" checked><span>${l}</span></label>`).join('')}</div><button class="pill" type="submit">Add chore</button></form>` +
+      `<div class="chips">${DAYS.map(([d, l]) => `<label class="chip chk dayc"><input type="checkbox" name="day" value="${d}" ${(d === 0 || d === 6) ? 'checked' : ''}><span>${l}</span></label>`).join('')}</div><button class="pill" type="submit">Add chore</button></form>` +
       (manage ? `<h3 class="aisle">All chores</h3>${manage}` : '') + `</section>`;
   }
 

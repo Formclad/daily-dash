@@ -37,6 +37,7 @@
   function html() {
     const items = all().sort((a, b) => (a.done - b.done) || (a.target || '9999').localeCompare(b.target || '9999'));
     return `<header class="dayhead"><div class="dh-mid"><h1>Goals</h1><div class="dh-sub">Big things, one small milestone at a time</div></div></header>` +
+      `<details class="card"><summary class="how">What do the areas mean?</summary>${D.categories.map(c => `<p class="hint"><b>${U.esc(c)}:</b> ${U.esc((D.areaInfo || {})[c] || '')}</p>`).join('')}</details>` +
       `<form class="card addtask" data-g="add"><input name="t" type="text" placeholder="A goal I'm working towards" required autocomplete="off" aria-label="Goal">` +
       `<div class="at-row"><select name="area" aria-label="Area"><option value="">Area</option>${D.categories.map(c => `<option>${U.esc(c)}</option>`).join('')}</select><input name="target" type="date" aria-label="Target date"><button class="pill" type="submit">Add goal</button></div></form>` +
       (items.length ? `<div class="cols"><div class="col">${items.filter((_, i) => i % 2 === 0).map(goalCard).join('')}</div><div class="col">${items.filter((_, i) => i % 2 === 1).map(goalCard).join('')}</div></div>` : '<p class="hint center">No goals yet. Start with one that matters.</p>');

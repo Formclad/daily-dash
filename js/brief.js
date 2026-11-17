@@ -31,14 +31,10 @@
       return m < 60 ? `in ${m} min` : `in ${Math.floor(m / 60)}h ${pad(m % 60)}m`;
     },
 
-    /** Things Sofia has to decide or do, drawn from every source. */
-    needsYou(date) {
+    /** Strava activities that probably match a habit, waiting for a one-tap "count it?". */
+    confirmations(date) {
       const out = [];
-      Briefings.actions().slice(0, 6).forEach(a => out.push({ kind: 'brief', t: a.t, sub: a.source, bid: a.bid, i: a.i }));
-      const today = U.today();
-      Matrix.ranked(today).filter(t => Matrix.quad(t, today) === 1 || (t.due && t.due < today)).slice(0, 4)
-        .forEach(t => out.push({ kind: 'task', t: t.t, sub: Matrix.fmtDue(t, today), id: t.id }));
-      Habits.forDay(date).forEach(h => { const a = Habits.stravaMatch(h, date); if (a) out.push({ kind: 'strava', t: `Count “${a.name}” for ${h.name}?`, sub: 'Strava', id: h.id }); });
+      Habits.forDay(date).forEach(h => { const a = Habits.stravaMatch(h, date); if (a) out.push({ id: h.id, t: `Count “${a.name}” for ${h.name}?` }); });
       return out;
     },
 
@@ -61,28 +57,36 @@
     },
 
     /**
-     * Today's focus, chosen for you: overdue or urgent-and-important Matrix tasks first, then things your
-     * briefings say need you, then important-but-not-urgent tasks. A busy day gets fewer items.
+     * TODAY'S FOCUS: only things that genuinely need doing today.
+     *   - overdue, due today, or due tomorrow and important
+     * Everything further out waits (see focusLater). A busy day gets fewer items, and it is fine to have none.
      */
     focus(date) {
-      const today = U.today();
+      const today = U.today(), tomorrow = U.addDays(today, 1);
       const timed = Brief.events(date).filter(e => e.time).length;
       const slots = timed >= 4 ? 2 : 3;
-      const ranked = Matrix.ranked(today), out = [], seen = new Set(), spill = [];
-      let prep = 0;
-      // Prep tasks created from the schedule are limited to one in the focus, so real deadlines are never crowded out.
-      const push = (c, fromSchedule) => {
-        const k = c.t.toLowerCase();
-        if (out.length >= slots || seen.has(k)) return;
-        if (fromSchedule && prep >= 1) { spill.push(c); return; }
-        seen.add(k); if (fromSchedule) prep++; out.push(c);
-      };
-      ranked.filter(t => Matrix.quad(t, today) === 1 || (t.due && t.due <= today)).forEach(t => push({ t: t.t, tid: t.id, why: Matrix.fmtDue(t, today) }, t.src === 'schedule'));
-      Briefings.actions().forEach(a => push({ t: a.t, bid: `${a.bid}|${a.i}`, why: a.source }, false));
-      ranked.filter(t => Matrix.quad(t, today) === 2).forEach(t => push({ t: t.t, tid: t.id, why: Matrix.fmtDue(t, today) }, t.src === 'schedule'));
-      spill.forEach(c => { if (out.length < slots && !seen.has(c.t.toLowerCase())) { seen.add(c.t.toLowerCase()); out.push(c); } });
-      return out;
+      const cand = Matrix.open().filter(t => t.due && (t.due <= today || (t.due === tomorrow && t.imp)))
+        .sort((a, b) => (a.due < b.due ? -1 : a.due > b.due ? 1 : 0) || (b.imp - a.imp) || ((a.src === 'schedule') - (b.src === 'schedule')));
+      const out = [], spill = []; let prep = 0;
+      cand.forEach(t => {
+        if (out.length >= slots) return;
+        if (t.src === 'schedule' && prep >= 1) { spill.push(t); return; }      // at most one prep task, so real deadlines are never crowded out
+        if (t.src === 'schedule') prep++;
+        out.push(t);
+      });
+      spill.forEach(t => { if (out.length < slots) out.push(t); });
+      return out.map(t => ({ t: t.t, tid: t.id, why: Matrix.fmtDue(t, today) }));
     },
+
+    /** Not today, but worth doing when there is a gap: the nearest important tasks. */
+    focusLater(date, n = 2) {
+      const today = U.today(), tomorrow = U.addDays(today, 1), inFocus = new Set(Brief.focus(date).map(c => c.tid));
+      return Matrix.open().filter(t => !inFocus.has(t.id) && t.imp && t.due && t.due > tomorrow && t.due <= U.addDays(today, 10))
+        .sort((a, b) => (a.due < b.due ? -1 : 1)).slice(0, n).map(t => ({ t: t.t, tid: t.id, why: Matrix.fmtDue(t, today) }));
+    },
+
+    /** Tasks with no date can never become "today's focus": a gentle reminder to give them one. */
+    undated() { return Matrix.open().filter(t => !t.due).length; },
 
     /** Free gaps in today's schedule (approximate: each event is assumed to last an hour). */
     slots(date, count = 3) {
@@ -101,8 +105,8 @@
     },
 
     headline(date) {
-      const n = Brief.needsYou(date).length, nx = Brief.nextUp(date);
-      const a = n ? `${n} thing${n === 1 ? '' : 's'} need${n === 1 ? 's' : ''} you` : 'Nothing needs you';
+      const n = date === U.today() ? Brief.focus(date).length : 0, nx = Brief.nextUp(date);
+      const a = n ? `${n} thing${n === 1 ? '' : 's'} to focus on today` : 'Nothing urgent today';
       const b = nx ? `Next: ${nx.text} at ${nx.time} (${Brief.until(nx.time)})` : (date === U.today() ? 'Nothing else timed today' : '');
       return [a, b].filter(Boolean).join('. ');
     }

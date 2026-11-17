@@ -1,6 +1,6 @@
 /*
  * HABITS: pure logic for habit stacking, streaks and "never miss twice".
- * A day counts as done if EITHER the full or the two-minute version was ticked.
+ * A day counts as done if EITHER the full or the easy (smaller) version was ticked.
  * The day record stores habits as { habitId: 'full' | 'mini' }.
  */
 (function () {
@@ -57,8 +57,8 @@
       }
       const s = Habits.streak(h, date);
       if (done) return { text: s.streak > 1 ? `🌱 ${s.streak} in a row` : '🌱 Done, lovely', tone: 'good' };
-      if (s.missed === 1) return { text: 'Never miss twice: today is the day (the 2-minute version counts)', tone: 'nudge' };
-      if (s.missed > 1) return { text: 'Fresh start today. The 2-minute version is plenty', tone: 'nudge' };
+      if (s.missed === 1) return { text: 'Never miss twice: today is the day (the easy version counts)', tone: 'nudge' };
+      if (s.missed > 1) return { text: 'Fresh start today. The easy version is plenty', tone: 'nudge' };
       return { text: '', tone: '' };
     }
   };
