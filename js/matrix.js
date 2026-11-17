@@ -22,10 +22,19 @@
     ],
     all: items,
     open: () => items().filter(t => !t.done),
-    add({ t, due, imp, cat, src, sk }) { const l = items(); const o = { id: 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), t, due: due || '', imp: !!imp, cat: cat || '', done: false }; if (src) { o.src = src; o.sk = sk; } l.push(o); save(l); },
+    add({ t, due, imp, cat, src, sk, evd }) { const l = items(); const o = { id: 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), t, due: due || '', imp: !!imp, cat: cat || '', done: false }; if (src) { o.src = src; o.sk = sk; } if (evd) o.evd = evd; l.push(o); save(l); return o.id; },
     patch(id, obj) { const l = items(); const x = l.find(i => i.id === id); if (x) { Object.assign(x, obj); save(l); } },
-    setDone(id, v) { Matrix.patch(id, { done: !!v }); },
-    remove(id) { const t = items().find(i => i.id === id); if (t && t.sk && window.Schedule) Schedule.dismiss(t.sk); save(items().filter(i => i.id !== id)); },
+    setDone(id, v) {
+      Matrix.patch(id, { done: !!v });
+      const t = items().find(i => i.id === id);
+      if (t && t.src === 'briefing' && t.sk && window.Briefings) { const [b, i] = t.sk.split('|'); Briefings.setDone(b, i, !!v); }   // keep the briefing in step
+    },
+    remove(id) {
+      const t = items().find(i => i.id === id);
+      if (t && t.src === 'schedule' && t.sk && window.Schedule) Schedule.dismiss(t.sk);
+      if (t && t.src === 'briefing' && t.sk && window.Briefings) { const [b, i] = t.sk.split('|'); Briefings.setDone(b, i, true); }
+      save(items().filter(i => i.id !== id));
+    },
 
     isUrgent: (t, today) => !!t.due && diff(today, t.due) <= D.urgentDays,
     quad(t, today) { const u = Matrix.isUrgent(t, today); return t.imp ? (u ? 1 : 2) : (u ? 3 : 4); },

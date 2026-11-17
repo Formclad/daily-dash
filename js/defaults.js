@@ -52,13 +52,26 @@ window.DD_DEFAULTS = {
   schedule: { startHour: 6, endHour: 21 },
 
   // Task categories for the matrix (edit freely).
-  categories: ['Formclad', 'TAFE', 'Family', 'Health', 'Study', 'Home', 'Personal'],
+  categories: ['Formclad', 'TAFE', 'Study', 'Professional development', 'Family', 'Health', 'Home', 'Holiday', 'Personal'],
+
+  // What each area means (shown as a key on the Goals page).
+  areaInfo: {
+    'Formclad': 'The family roofing business: management, admin, quotes, people.',
+    'TAFE': 'Your teaching job: classes, marking, planning.',
+    'Study': 'Your own qualifications: the masters, applications, coursework.',
+    'Professional development': 'Skills and career growth: courses, reading, networking, certifications.',
+    'Family': 'The kids, school and childcare, activities, relationships.',
+    'Health': 'Body and mind: appointments, fitness, sleep, wellbeing.',
+    'Home': 'The house and household: maintenance, cleaning, money admin.',
+    'Holiday': 'Trips and breaks: planning, booking and saving for them.',
+    'Personal': 'Rest, friends, hobbies and anything just for you.'
+  },
 
   // A task is "urgent" when it is due within this many days (or overdue).
   urgentDays: 2,
 
   // Shown in Settings so you can tell which copy of the app you are running.
-  appVersion: 'v16',
+  appVersion: 'v17',
 
   // Remind to back up after this many days.
   backupReminderDays: 7

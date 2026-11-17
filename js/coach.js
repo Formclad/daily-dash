@@ -65,7 +65,7 @@
       else if ((r.mood && r.mood <= 2) || (r.energy && r.energy <= 2)) tryThis.push('Yesterday felt low. Today, aim for one gentle win and some daylight early.');
       const missed = Habits.forDay(y).filter(h => !Habits.done(h.id, y)).length;
       if (!tryThis.length && missed && Object.keys(yd).length) tryThis.push('A missed day is information, not failure. Never miss twice: the two-minute version counts today.');
-      if (!tryThis.length && Brief.needsYou(today).length > 5) tryThis.push('There is a lot on the list. Pick ONE thing; the rest can wait.');
+      if (!tryThis.length && Matrix.open().filter(t => t.due && t.due <= today).length > 4) tryThis.push('There is a lot on the list. Pick ONE thing; the rest can wait.');
       if (!tryThis.length) tryThis.push(Coach.reframe());
 
       return { noticed: noticed[0] || pick(STRENGTHS), tryThis: tryThis[0] };

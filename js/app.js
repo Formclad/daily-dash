@@ -7,45 +7,52 @@
   const app = document.getElementById('app');
   const nav = document.getElementById('nav');
   const banner = document.getElementById('banner');
+  const sub = document.getElementById('subnav');
 
-  // route name -> { label, icon, page }   (order = order in the navigation)
+  // Every route and the page that draws it.
   const PAGES = {
-    home:    { label: 'Home',    icon: '⌂', page: BriefPage },
-    plan:    { label: 'Plan',    icon: '✎', page: TodayPage, dated: true },
-    journal: { label: 'Journal', icon: '✿', page: TodayPage, dated: true },
-    briefings:{ label: 'Briefings', icon: '✉', page: BriefingsPage, sec: true },
-    matrix:  { label: 'Matrix',  icon: '▦', page: MatrixPage },
-    goals:   { label: 'Goals',   icon: '◎', page: GoalsPage, sec: true },
-    coach:   { label: 'Coach',   icon: '❀', page: CoachPage, sec: true },
-    household:{ label: 'Household', icon: '❖', page: HouseholdPage, sec: true },
-    dash:    { label: 'Dashboard', icon: '▤', page: HomePage, sec: true },
-    meals:   { label: 'Meals',   icon: '❋', page: MealsPage, sec: true },
-    family:  { label: 'Family',  icon: '☺', page: FamilyPage, sec: true },
-    health:  { label: 'Health',  icon: '♡', page: HealthPage, sec: true },
-    settings:{ label: 'Settings',icon: '⚙', page: SettingsPage, sec: true },
-    more:    { label: 'More',    icon: '☰', page: MorePage, hidden: true }
+    home: { page: BriefPage }, briefings: { page: BriefingsPage },
+    week: { page: WeekPage }, plan: { page: TodayPage, dated: true },
+    matrix: { page: MatrixPage },
+    journal: { page: TodayPage, dated: true }, coach: { page: CoachPage }, goals: { page: GoalsPage }, health: { page: HealthPage },
+    household: { page: HouseholdPage }, meals: { page: MealsPage }, family: { page: FamilyPage },
+    settings: { page: SettingsPage }
   };
 
+  // The navigation is grouped so related pages live together. `tabs` appear as a small bar at the top of each page.
+  const GROUPS = [
+    { id: 'home',   label: 'Home',   icon: '⌂', tabs: [['home', 'Today'], ['briefings', 'Briefings']] },
+    { id: 'week',   label: 'Week',   icon: '▤', tabs: [['week', 'Week']], also: ['plan'] },
+    { id: 'matrix', label: 'Matrix', icon: '▦', tabs: [['matrix', 'Matrix']] },
+    { id: 'me',     label: 'Me',     icon: '❀', tabs: [['journal', 'Journal'], ['coach', 'Coach'], ['goals', 'Goals'], ['health', 'Health']] },
+    { id: 'house',  label: 'House',  icon: '❖', tabs: [['household', 'Household'], ['meals', 'Meals'], ['family', 'Family']] },
+    { id: 'settings', label: 'Settings', icon: '⚙', tabs: [['settings', 'Settings']], railOnly: true }
+  ];
+  const groupOf = r => GROUPS.find(g => g.tabs.some(t => t[0] === r) || (g.also || []).includes(r));
+  const lastKey = g => 'dd:last:' + g;
+  const lastRoute = g => { try { const r = localStorage.getItem(lastKey(g.id)); if (r && g.tabs.some(t => t[0] === r)) return r; } catch (e) {} return g.tabs[0][0]; };
+
   let route = 'home';
-  window.App = { get route() { return route; }, secondary: () => Object.entries(PAGES).filter(([, p]) => p.sec) };   // pages check this so only the visible page reacts to clicks
+  window.App = { get route() { return route; } };   // pages check this so only the visible page reacts to clicks
 
   function parse() {
     let [, name, arg] = (location.hash || '').split('/');
     if (name === 'today') name = 'plan';   // old links from the first version
+    if (name === 'dash' || name === 'more') name = 'home';
     return { name: PAGES[name] ? name : 'home', arg };
   }
 
   function show(fresh) {
     const { name, arg } = parse();
     route = name;
-    const P = PAGES[name];
+    const P = PAGES[name], G = groupOf(name);
+    if (G) { try { localStorage.setItem(lastKey(G.id), name); } catch (e) {} }
     if (P.dated) TodayPage.render(app, /^\d{4}-\d{2}-\d{2}$/.test(arg || '') ? arg : U.today(), name);
-    else P.page.render(app);
-    const link = ([k, p]) => `<a href="#/${k}" class="${p.sec ? 'sec ' : ''}${k === name || (p.sec && name === 'more') ? 'on' : ''}" ${k === name ? 'aria-current="page"' : ''}><span class="ni">${p.icon}</span>${p.label}</a>`;
-    const moreOn = P.sec || name === 'more';
-    nav.innerHTML = Object.entries(PAGES).filter(([, p]) => !p.hidden).map(link).join('') +
-      `<a href="#/more" class="more-link ${moreOn ? 'on' : ''}"><span class="ni">☰</span>More</a>` +
+    else P.page.render(app, arg);
+    nav.innerHTML = GROUPS.map(g => `<a href="#/${lastRoute(g)}" class="${g.railOnly ? 'rail-only ' : ''}${G === g ? 'on' : ''}" ${G === g ? 'aria-current="page"' : ''}><span class="ni">${g.icon}</span>${g.label}</a>`).join('') +
       `<a href="#/settings" class="sync-dot ${Sync.status}" title="${Sync.status}" aria-label="Sync status: ${Sync.status}"></a>`;
+    sub.innerHTML = G && G.tabs.length > 1 ? G.tabs.map(([r, l]) => `<a href="#/${r}" class="${r === name ? 'on' : ''}">${l}</a>`).join('') : '';
+    sub.hidden = !sub.innerHTML;
     if (fresh === true) window.scrollTo(0, 0);
     updateBanner();
   }
@@ -62,7 +69,7 @@
   banner.addEventListener('click', e => { if (e.target.id === 'snooze') { Store.setMeta('snooze', Date.now() + 864e5); updateBanner(); } });
 
   BriefPage.bind(app);
-  HomePage.bind(app);
+  WeekPage.bind(app);
   HouseholdPage.bind(app);
   CoachPage.bind(app);
   TodayPage.bind(app);

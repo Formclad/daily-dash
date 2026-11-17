@@ -54,17 +54,29 @@
     pending() { const s = st(); return Schedule.candidates().filter(c => !s.added[c.key] && !s.dismissed[c.key]); },
 
     /** Add due-soon suggestions to the Matrix automatically (once each). Returns how many were added. */
+    /** Prep tasks are pointless once their event has happened: quietly retire them. */
+    expire() {
+      const today = U.today(), cands = Schedule.candidates();
+      Matrix.open().filter(t => t.src === 'schedule').forEach(t => {
+        let evd = t.evd;
+        if (!evd) { const c = cands.find(x => x.key === t.sk); evd = c ? c.date : ''; if (evd) Matrix.patch(t.id, { evd }); }
+        // older tasks have no event date: if the event is no longer ahead of us and the task is overdue, it is over
+        if ((evd && evd < today) || (!evd && t.due && t.due < today)) Matrix.patch(t.id, { done: true, expired: true });
+      });
+    },
+
     run() {
+      Schedule.expire();
       if (!st().auto) return 0;
       const p = Schedule.pending().filter(c => c.days <= 10).slice(0, 5);
-      p.forEach(c => Matrix.add({ t: c.t, due: c.due, imp: c.imp, cat: c.cat, src: 'schedule', sk: c.key }));
+      p.forEach(c => Matrix.add({ t: c.t, due: c.due, imp: c.imp, cat: c.cat, src: 'schedule', sk: c.key, evd: c.date }));
       if (p.length) Store.update(KEY, DEF, s => p.forEach(c => { s.added[c.key] = 1; }));
       return p.length;
     },
     addOne(key) {
       const c = Schedule.candidates().find(x => x.key === key);
       if (!c) return;
-      Matrix.add({ t: c.t, due: c.due, imp: c.imp, cat: c.cat, src: 'schedule', sk: c.key });
+      Matrix.add({ t: c.t, due: c.due, imp: c.imp, cat: c.cat, src: 'schedule', sk: c.key, evd: c.date });
       Store.update(KEY, DEF, s => { s.added[key] = 1; });
     },
     dismiss(key) { Store.update(KEY, DEF, s => { s.dismissed[key] = 1; }); }
